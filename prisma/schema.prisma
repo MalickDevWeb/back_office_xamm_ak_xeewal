@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Adherent {
+  id           String   @id @default(uuid())
+  prenom       String
+  nom          String
+  telephone    String
+  quartier     String
+  profession   String?
+  competences  String?
+  disponibilite String?
+  statut       String   @default("NOUVEAU") // NOUVEAU, ACTIF, SUSPENDU
+  createdAt    DateTime @default(now())
+}
+
+model Besoin {
+  id           String   @id @default(uuid())
+  description  String
+  quartier     String
+  photoUrl     String?
+  contact      String?
+  urgence      String   @default("MOYENNE") // HAUTE, MOYENNE, BASSE
+  statut       String   @default("EN_ATTENTE") // EN_ATTENTE, EN_COURS, RESOLU
+  createdAt    DateTime @default(now())
+}
+
+model Idee {
+  id           String   @id @default(uuid())
+  titre        String
+  description  String
+  auteur       String?
+  pole         String?
+  votes        Int      @default(0)
+  statut       String   @default("NOUVELLE") // NOUVELLE, A_LETUDE, VALIDEE, REJETEE
+  createdAt    DateTime @default(now())
+}
+
+model Commission {
+  id           String   @id @default(uuid())
+  nom          String
+  responsable  String?
+  membresCount Int      @default(0)
+  statut       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+}
+
+model Sondage {
+  id           String   @id @default(uuid())
+  question     String
+  participants Int      @default(0)
+  statut       String   @default("ACTIF") // ACTIF, CLOTURE
+  options      SondageOption[]
+  createdAt    DateTime @default(now())
+}
+
+model SondageOption {
+  id        String  @id @default(uuid())
+  texte     String
+  votes     Int     @default(0)
+  sondageId String
+  sondage   Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade)
+}
+
+model Activite {
+  id        String   @id @default(uuid())
+  titre     String
+  categorie String
+  date      DateTime
+  typeMedia String   @default("PHOTOS") // PHOTOS, VIDEO
+  mediaUrl  String?
+  mediaCount Int     @default(0)
+  statut    String   @default("BROUILLON") // BROUILLON, PUBLIE
+  createdAt DateTime @default(now())
+}
+
+model CompteRendu {
+  id        String   @id @default(uuid())
+  titre     String
+  lieu      String
+  date      DateTime
+  auteur    String
+  contenu   String?  @db.Text
+  statut    String   @default("BROUILLON") // BROUILLON, INTERNE, PUBLIE
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  nom       String
+  email     String?
+  telephone String?
+  sujet     String
+  contenu   String   @db.Text
+  lu        Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model Editorial {
+  id        String   @id @default(uuid())
+  page      String   @unique // "mouvement", "axes"
+  content   String   @db.Text // JSON stringifié
+  updatedAt DateTime @updatedAt
+}
