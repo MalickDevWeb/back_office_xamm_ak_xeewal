@@ -19,58 +19,54 @@ model AdminUser {
 }
 
 model Adherent {
-  id              String   @id @default(uuid())
-  prenom          String
-  nom             String
-  telephone       String
-  quartier        String
-  localite        String?
-  profession      String?
-  competences     String?
-  disponibilite   String?
-  carteRectoUrl   String?
-  carteVersoUrl   String?
-  statut          String   @default("NOUVEAU") // NOUVEAU, ACTIF, SUSPENDU
-  createdAt       DateTime @default(now())
+  id            String   @id @default(uuid())
+  prenom        String
+  nom           String
+  telephone     String
+  quartier      String
+  profession    String?
+  competences   String?
+  disponibilite String?
+  statut        String   @default("NOUVEAU")
+  createdAt     DateTime @default(now())
+  carteRectoUrl String?
+  carteVersoUrl String?
 
   @@index([telephone])
   @@index([quartier])
-  @@index([localite])
   @@index([statut])
   @@index([createdAt])
 }
 
 model Besoin {
-  id           String   @id @default(uuid())
-  description  String
-  categorie    String?
-  quartier     String
-  localite     String?
-  photoUrl     String?
-  vocalUrl     String?  // URL Cloudinary du message vocal
-  contact      String?
-  urgence      String   @default("MOYENNE") // HAUTE, MOYENNE, BASSE
-  statut       String   @default("EN_ATTENTE") // EN_ATTENTE, EN_COURS, RESOLU
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid())
+  description String
+  quartier    String
+  photoUrl    String?
+  contact     String?
+  urgence     String   @default("MOYENNE")
+  statut      String   @default("EN_ATTENTE")
+  createdAt   DateTime @default(now())
+  categorie   String?
+  vocalUrl    String?
 
   @@index([contact])
   @@index([quartier])
-  @@index([localite])
   @@index([statut])
   @@index([urgence])
   @@index([createdAt])
 }
 
 model Idee {
-  id           String   @id @default(uuid())
-  titre        String
-  description  String
-  categorie    String?
-  auteur       String?
-  pole         String?
-  votes        Int      @default(0)
-  statut       String   @default("NOUVELLE") // NOUVELLE, A_LETUDE, VALIDEE, REJETEE
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid())
+  titre       String
+  description String
+  auteur      String?
+  pole        String?
+  votes       Int      @default(0)
+  statut      String   @default("NOUVELLE")
+  createdAt   DateTime @default(now())
+  categorie   String?
 
   @@index([statut])
   @@index([votes])
@@ -78,26 +74,26 @@ model Idee {
 }
 
 model Commission {
-  id           String   @id @default(uuid())
-  nom          String
-  responsable  String?
-  membresCount Int      @default(0)
-  reunions     Int      @default(0)
+  id            String   @id @default(uuid())
+  nom           String
+  responsable   String?
+  membresCount  Int      @default(0)
+  statut        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
   dernierProjet String?
-  statut       String   @default("ACTIVE")
-  createdAt    DateTime @default(now())
+  reunions      Int      @default(0)
 
   @@index([statut])
   @@index([createdAt])
 }
 
 model Sondage {
-  id           String   @id @default(uuid())
+  id           String          @id @default(uuid())
   question     String
-  participants Int      @default(0)
-  statut       String   @default("ACTIF") // ACTIF, CLOTURE
+  participants Int             @default(0)
+  statut       String          @default("ACTIF")
+  createdAt    DateTime        @default(now())
   options      SondageOption[]
-  createdAt    DateTime @default(now())
 
   @@index([statut])
   @@index([createdAt])
@@ -112,15 +108,15 @@ model SondageOption {
 }
 
 model Activite {
-  id        String   @id @default(uuid())
-  titre     String
-  categorie String
-  date      DateTime
-  typeMedia String   @default("PHOTOS") // PHOTOS, VIDEO
-  mediaUrl  String?
-  mediaCount Int     @default(0)
-  statut    String   @default("BROUILLON") // BROUILLON, PUBLIE
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  titre      String
+  categorie  String
+  date       DateTime
+  typeMedia  String   @default("PHOTOS")
+  mediaUrl   String?
+  mediaCount Int      @default(0)
+  statut     String   @default("BROUILLON")
+  createdAt  DateTime @default(now())
 }
 
 model CompteRendu {
@@ -129,8 +125,8 @@ model CompteRendu {
   lieu      String
   date      DateTime
   auteur    String
-  contenu   String?  @db.Text
-  statut    String   @default("BROUILLON") // BROUILLON, INTERNE, PUBLIE
+  contenu   String?
+  statut    String   @default("BROUILLON")
   createdAt DateTime @default(now())
 }
 
@@ -140,7 +136,7 @@ model Message {
   email     String?
   telephone String?
   sujet     String
-  contenu   String   @db.Text
+  contenu   String
   lu        Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -152,23 +148,22 @@ model Message {
 model Settings {
   id        String   @id @default(uuid())
   key       String   @unique
-  value     String   @db.Text
+  value     String
   updatedAt DateTime @updatedAt
 }
 
 model Editorial {
   id        String   @id @default(uuid())
-  page      String   @unique // "mouvement", "axes"
-  content   String   @db.Text // JSON stringifié
+  page      String   @unique
+  content   String
   updatedAt DateTime @updatedAt
 }
 
-// Options dynamiques pour les selects (quartiers, axes, catégories, etc.)
 model Option {
   id        String   @id @default(uuid())
-  type      String   // "quartier", "axe", "categorie", "statut", "urgence", "pole"
-  value     String   // Valeur stockée en base
-  label     String   // Label affiché à l'utilisateur
+  type      String
+  value     String
+  label     String
   ordre     Int      @default(0)
   actif     Boolean  @default(true)
   createdAt DateTime @default(now())
