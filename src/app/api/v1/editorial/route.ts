@@ -2,15 +2,7 @@ export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 200, headers: corsHeaders });
-}
 
 export async function GET(req: Request) {
   try {
@@ -19,14 +11,14 @@ export async function GET(req: Request) {
 
     if (page) {
       const editorial = await prisma.editorial.findUnique({ where: { page } });
-      return NextResponse.json({ success: true, data: editorial ? JSON.parse(editorial.content) : null }, { headers: corsHeaders });
+      return NextResponse.json({ success: true, data: editorial ? JSON.parse(editorial.content) : null });
     }
 
     const all = await prisma.editorial.findMany();
-    return NextResponse.json({ success: true, data: all }, { headers: corsHeaders });
+    return NextResponse.json({ success: true, data: all });
   } catch (error) {
     console.error('GET /editorial error:', error);
-    return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500, headers: corsHeaders });
+    return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
@@ -41,8 +33,8 @@ export async function POST(req: Request) {
       create: { page, content: JSON.stringify(content) }
     });
 
-    return NextResponse.json({ success: true, data: updated }, { status: 200, headers: corsHeaders });
+    return NextResponse.json({ success: true, data: updated }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500, headers: corsHeaders });
+    return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }
 }

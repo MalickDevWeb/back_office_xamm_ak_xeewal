@@ -3,10 +3,14 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 export async function middleware(request: NextRequest) {
-  // CORS Handling - wildcard for PWA access, no credentials needed for JWT
+  // CORS Handling - dynamic origin based on CORS_ORIGINS env
+  const origin = request.headers.get('origin') || '*';
+  const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['*'];
+
+  const isAllowedOrigin = allowedOrigins.includes('*') || allowedOrigins.includes(origin);
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 
@@ -18,7 +22,7 @@ export async function middleware(request: NextRequest) {
   // Authentication Handling
   const protectedMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
   const isProtectedPath = request.nextUrl.pathname.startsWith('/api/v1/') && !request.nextUrl.pathname.startsWith('/api/v1/auth');
-  
+
   const publicPostEndpoints = ['/api/v1/besoins', '/api/v1/adherents', '/api/v1/idees', '/api/v1/messages', '/api/v1/upload-audio', '/api/v1/upload-public'];
   const isPublicPost = publicPostEndpoints.includes(request.nextUrl.pathname);
 
@@ -37,10 +41,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Forward the request and attach CORS headers
+  // Forward the request and attach CORS headers (dynamic origin, no credentials)
   const response = NextResponse.next();
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  response.headers.set('Access-Control-Allow-Origin', corsHeaders['Access-Control-Allow-Origin']);
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   return response;
 }

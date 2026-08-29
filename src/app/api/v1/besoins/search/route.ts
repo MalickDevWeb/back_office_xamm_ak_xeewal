@@ -4,11 +4,6 @@ import { prisma } from '../../../../../core/lib/prisma';
 
 /**
  * Endpoint: GET /api/v1/besoins/search?contact=771234567
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
  * Returns all besoins/signalements for a given phone number (person identifier).
  * Supports additional filters: quartier, localite, statut, urgence, dateFrom, dateTo, month, year
  */

@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verify } from 'jsonwebtoken';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+import { getCorsHeaders } from '../lib/cors';
 
 export async function withAuth(req: NextRequest, handler: Function) {
+  const corsHeaders = getCorsHeaders(req);
+
   try {
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -16,10 +13,9 @@ export async function withAuth(req: NextRequest, handler: Function) {
 
     const token = authHeader.split(' ')[1];
     const secret = process.env.JWT_SECRET || 'fallback_secret';
-    
+
     const decoded = verify(token, secret);
-    
-    // Add decoded user to request as a custom header or passed to handler
+
     (req as any).user = decoded;
 
     return await handler(req);

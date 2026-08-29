@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       public_id: result.public_id,
       format: result.format,
       size_bytes: result.bytes,
-    }, { status: 200, headers: corsHeaders });
+    }, { status: 200 });
 
   } catch (error: any) {
     console.error('Erreur upload audio:', error);
@@ -79,8 +79,3 @@ export async function POST(req: NextRequest) {
 }
 
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
