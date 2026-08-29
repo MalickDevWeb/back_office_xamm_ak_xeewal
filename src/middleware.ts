@@ -43,9 +43,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Forward the request - CORS headers are set by each route handler
-  // to avoid duplicate headers in the response
-  return NextResponse.next();
+  // Forward the request and attach CORS headers
+  const response = NextResponse.next();
+  response.headers.set('Access-Control-Allow-Origin', 'http://localhost:4200');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  return response;
 }
 
 export const config = {

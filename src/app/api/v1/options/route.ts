@@ -3,12 +3,12 @@ import { prisma } from '../../../../core/lib/prisma';
 
 export const runtime = 'nodejs';
 
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'http://localhost:4200',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
-
 
 // GET /api/v1/options?type=quartier
 export async function GET(request: Request) {
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       where: type ? { type, actif: true } : { actif: true },
       orderBy: [{ ordre: 'asc' }, { label: 'asc' }],
     });
-    return NextResponse.json({ success: true, data: options }, { headers: corsHeaders });
+    return NextResponse.json({ success: true, data: options }));
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Erreur base de données' }, { status: 500 });
   }
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       data: { type, value, label, ordre: ordre ?? 0 },
     });
 
-    return NextResponse.json({ success: true, data: option }, { status: 201 });
+    return NextResponse.json({ success: true, data: option }, { status: 201 }, { headers: corsHeaders });
   } catch (error: any) {
     if (error.code === 'P2002') {
       return NextResponse.json({ success: false, message: 'Cette option existe déjà' }, { status: 409 });
@@ -63,7 +63,7 @@ export async function PUT(request: Request) {
       data: { ...(label && { label }), ...(ordre !== undefined && { ordre }), ...(actif !== undefined && { actif }) },
     });
 
-    return NextResponse.json({ success: true, data: option }, { headers: corsHeaders });
+    return NextResponse.json({ success: true, data: option }));
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Erreur lors de la mise à jour' }, { status: 500 });
   }
@@ -80,7 +80,7 @@ export async function DELETE(request: Request) {
 
   try {
     await prisma.option.delete({ where: { id } });
-    return NextResponse.json({ success: true, message: 'Option supprimée' }, { headers: corsHeaders });
+    return NextResponse.json({ success: true, message: 'Option supprimée' }));
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Erreur lors de la suppression' }, { status: 500 });
   }

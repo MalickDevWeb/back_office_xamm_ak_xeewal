@@ -4,6 +4,11 @@ import { prisma } from '../../../../core/lib/prisma';
 
 export async function GET() {
   try {
+const corsHeaders = {
+  'Access-Control-Allow-Origin': 'http://localhost:4200',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
     const settings = await prisma.settings.findMany();
     // Convert array of {key, value} to a single object {key: value}
     const data = settings.reduce((acc: any, curr) => {
@@ -11,14 +16,9 @@ export async function GET() {
       return acc;
     }, {});
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
 
     
-    return NextResponse.json({ success: true, data }, { headers: corsHeaders });
+    return NextResponse.json({ success: true, data }));
   } catch (error) {
     console.error('GET /settings error:', error);
     return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       });
     }
     
-    return NextResponse.json({ success: true, message: "Paramètres mis à jour" }, { status: 200 });
+    return NextResponse.json({ success: true, message: "Paramètres mis à jour" }, { status: 200 }, { headers: corsHeaders });
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }

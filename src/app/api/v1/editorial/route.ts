@@ -4,14 +4,14 @@ import { prisma } from '../../../../core/lib/prisma';
 
 export async function GET(req: Request) {
   try {
-    const url = new URL(req.url);
-    const page = url.searchParams.get('page');
-
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'http://localhost:4200',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
+    const url = new URL(req.url);
+    const page = url.searchParams.get('page');
+
 
     
     if (page) {
@@ -20,7 +20,7 @@ const corsHeaders = {
     }
     
     const all = await prisma.editorial.findMany();
-    return NextResponse.json({ success: true, data: all }, { headers: corsHeaders });
+    return NextResponse.json({ success: true, data: all }));
   } catch (error) {
     console.error('GET /editorial error:', error);
     return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       create: { page, content: JSON.stringify(content) }
     });
     
-    return NextResponse.json({ success: true, data: updated }, { status: 200 });
+    return NextResponse.json({ success: true, data: updated }, { status: 200 }, { headers: corsHeaders });
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }

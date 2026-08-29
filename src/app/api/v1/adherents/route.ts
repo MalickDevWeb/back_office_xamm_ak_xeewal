@@ -4,6 +4,11 @@ import { prisma } from '../../../../core/lib/prisma';
 
 export async function GET(req: Request) {
   try {
+const corsHeaders = {
+  'Access-Control-Allow-Origin': 'http://localhost:4200',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
     const url = new URL(req.url);
     const searchParams = url.searchParams;
 
@@ -77,7 +82,7 @@ export async function POST(req: Request) {
     };
 
     const newAdherent = await prisma.adherent.create({ data: payload });
-    return NextResponse.json({ success: true, data: newAdherent }, { status: 201 });
+    return NextResponse.json({ success: true, data: newAdherent }, { status: 201 }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('POST /adherents error:', error);
     return NextResponse.json({ success: false, message: "Erreur lors de la création", error: error.message }, { status: 500 });
