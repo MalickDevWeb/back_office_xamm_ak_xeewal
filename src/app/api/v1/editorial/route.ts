@@ -9,11 +9,11 @@ export async function GET(req: Request) {
     
     if (page) {
       const editorial = await prisma.editorial.findUnique({ where: { page } });
-      return NextResponse.json({ success: true, data: editorial ? JSON.parse(editorial.content) : null });
+      return NextResponse.json({ success: true, data: editorial ? JSON.parse(editorial.content) : null }, { headers: corsHeaders });
     }
     
     const all = await prisma.editorial.findMany();
-    return NextResponse.json({ success: true, data: all });
+    return NextResponse.json({ success: true, data: all }, { headers: corsHeaders });
   } catch (error) {
     console.error('GET /editorial error:', error);
     return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
@@ -36,3 +36,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }
 }
+
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};

@@ -13,11 +13,17 @@ export async function GET(request: Request) {
       where: type ? { type, actif: true } : { actif: true },
       orderBy: [{ ordre: 'asc' }, { label: 'asc' }],
     });
-    return NextResponse.json({ success: true, data: options });
+    return NextResponse.json({ success: true, data: options }, { headers: corsOptions });
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Erreur base de données' }, { status: 500 });
   }
 }
+
+const corsOptions = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
 
 // POST /api/v1/options
 export async function POST(request: Request) {

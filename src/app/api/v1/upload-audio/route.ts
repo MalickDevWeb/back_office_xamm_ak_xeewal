@@ -43,8 +43,7 @@ export async function POST(req: NextRequest) {
     const result = await new Promise<any>((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
-          folder: 'jamm-ak-xeewal/signalements-vocaux',
-          resource_type: 'video',        // Cloudinary: 'video' couvre l'audio
+          resource_type: 'auto',
           public_id: publicId,
           // Qualité audio maximale : pas de dégradation
           // format: 'mp3',              // Décommenter pour forcer mp3 (perd la qualité opus)
@@ -75,6 +74,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Erreur upload audio:', error);
-    return NextResponse.json({ success: false, message: "Erreur lors de l'upload du message vocal." }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Erreur lors de l'upload du message vocal.", error: error }, { status: 500 });
   }
 }

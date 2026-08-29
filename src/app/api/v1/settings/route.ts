@@ -11,7 +11,7 @@ export async function GET() {
       return acc;
     }, {});
     
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data }, { headers: corsOptions });
   } catch (error) {
     console.error('GET /settings error:', error);
     return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
@@ -37,3 +37,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }
 }
+
+
+const corsOptions = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
