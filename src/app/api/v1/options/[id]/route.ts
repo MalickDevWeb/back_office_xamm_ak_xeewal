@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../../../core/lib/prisma';
+import { prisma } from '../../../../../core/lib/prisma';
 import { withAuth } from '../../../../../core/middlewares/authGuard';
+
 
 // DELETE /api/v1/options/[id] - Delete an option (admin only)
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {

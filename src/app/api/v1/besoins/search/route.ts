@@ -74,7 +74,7 @@ export async function GET(req: Request) {
           prenom: adherent.prenom,
           telephone: adherent.telephone,
           quartier: adherent.quartier,
-          localite: adherent.localite,
+          profession: adherent.profession,
           statut: adherent.statut,
           dateAdhesion: adherent.createdAt
         } : null,

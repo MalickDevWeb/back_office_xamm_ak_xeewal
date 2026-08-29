@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       create: { page, content: JSON.stringify(content) }
     });
     
-    return NextResponse.json({ success: true, data: updated }, { status: 200 }, { headers: corsHeaders });
+    return NextResponse.json({ success: true, data: updated }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }
