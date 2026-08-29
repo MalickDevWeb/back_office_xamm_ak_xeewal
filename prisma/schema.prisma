@@ -108,15 +108,16 @@ model SondageOption {
 }
 
 model Activite {
-  id         String   @id @default(uuid())
-  titre      String
-  categorie  String
-  date       DateTime
-  typeMedia  String   @default("PHOTOS")
-  mediaUrl   String?
-  mediaCount Int      @default(0)
-  statut     String   @default("BROUILLON")
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid())
+  titre       String
+  description String?
+  categorie   String
+  date        DateTime
+  typeMedia   String   @default("PHOTOS")
+  mediaUrl    String?
+  mediaCount  Int      @default(0)
+  statut      String   @default("PUBLIE")
+  createdAt   DateTime @default(now())
 }
 
 model CompteRendu {
