@@ -43,13 +43,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Forward the request and attach CORS headers
-  const response = NextResponse.next();
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    response.headers.set(key, value);
-  });
-  
-  return response;
+  // Forward the request - CORS headers are set by each route handler
+  // to avoid duplicate headers in the response
+  return NextResponse.next();
 }
 
 export const config = {

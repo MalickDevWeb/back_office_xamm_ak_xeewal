@@ -3,10 +3,17 @@ import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 import { withAuth } from '../../../../core/middlewares/authGuard';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+
 export async function GET() {
   try {
     const activites = await prisma.activite.findMany({ orderBy: { date: 'desc' } });
-    return NextResponse.json({ success: true, data: activites, total: activites.length }, { headers: corsOptions });
+    return NextResponse.json({ success: true, data: activites, total: activites.length }, { headers: corsHeaders });
   } catch (error) {
     console.error('GET /activites error:', error);
     return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
@@ -28,8 +35,3 @@ export async function POST(req: Request) {
 }
 
 
-const corsOptions = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};

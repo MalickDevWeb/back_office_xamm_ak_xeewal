@@ -38,12 +38,12 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     const timestamp = Date.now();
-    const publicId = `vocal_${timestamp}`;
+    const publicId = `vocal_${timestamp}.webm`;
 
     const result = await new Promise<any>((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
-          resource_type: 'auto',
+          resource_type: 'raw',
           public_id: publicId,
           // Qualité audio maximale : pas de dégradation
           // format: 'mp3',              // Décommenter pour forcer mp3 (perd la qualité opus)

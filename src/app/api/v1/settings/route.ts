@@ -10,8 +10,15 @@ export async function GET() {
       acc[curr.key] = curr.value;
       return acc;
     }, {});
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
     
-    return NextResponse.json({ success: true, data }, { headers: corsOptions });
+    return NextResponse.json({ success: true, data }, { headers: corsHeaders });
   } catch (error) {
     console.error('GET /settings error:', error);
     return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
@@ -32,15 +39,10 @@ export async function POST(req: Request) {
       });
     }
     
-    return NextResponse.json({ success: true, message: "Paramètres mis à jour" }, { status: 200 });
+    return NextResponse.json({ success: true, message: "Paramètres mis à jour" }, { status: 200 }, { headers: corsHeaders });
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }
 }
 
 
-const corsOptions = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};

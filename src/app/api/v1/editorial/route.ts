@@ -6,10 +6,17 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const page = url.searchParams.get('page');
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
     
     if (page) {
       const editorial = await prisma.editorial.findUnique({ where: { page } });
-      return NextResponse.json({ success: true, data: editorial ? JSON.parse(editorial.content) : null }, { headers: corsHeaders });
+      return NextResponse.json({ success: true, data: editorial ? JSON.parse(editorial.content) : null });
     }
     
     const all = await prisma.editorial.findMany();
@@ -31,15 +38,10 @@ export async function POST(req: Request) {
       create: { page, content: JSON.stringify(content) }
     });
     
-    return NextResponse.json({ success: true, data: updated }, { status: 200 });
+    return NextResponse.json({ success: true, data: updated }, { status: 200 }, { headers: corsHeaders });
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }
 }
 
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
