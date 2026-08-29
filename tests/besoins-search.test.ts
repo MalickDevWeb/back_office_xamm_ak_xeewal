@@ -12,7 +12,6 @@ describe('GET /api/v1/besoins/search', () => {
         nom: 'TestUser',
         prenom: 'Search',
         quartier: 'Nguinth',
-        localite: 'Thies-Nord',
         statut: 'NOUVEAU'
       }
     });
@@ -24,7 +23,7 @@ describe('GET /api/v1/besoins/search', () => {
         description: 'Test search signalement',
         vocalUrl: 'https://example.com/audio.mp3',
         quartier: 'Nguinth',
-        localite: 'Thies-Nord',
+        categorie: 'Transport',
         urgence: 'HAUTE',
         statut: 'NOUVEAU'
       }
@@ -37,7 +36,7 @@ describe('GET /api/v1/besoins/search', () => {
         description: 'Old signalement from 2025',
         vocalUrl: 'https://example.com/audio2.mp3',
         quartier: 'Nguinth',
-        localite: 'Thies-Nord',
+        categorie: 'Education',
         urgence: 'BASSE',
         statut: 'NOUVEAU',
         createdAt: new Date('2025-01-15')
@@ -69,18 +68,8 @@ describe('GET /api/v1/besoins/search', () => {
     expect(json.data.personne.telephone).toBe('77123456');
     expect(json.data.personne.nom).toBe('TestUser');
     expect(json.data.personne.prenom).toBe('Search');
-    expect(json.data.personne.localite).toBe('Thies-Nord');
     expect(json.data.signalements).toBeDefined();
     expect(Array.isArray(json.data.signalements)).toBe(true);
-    expect(json.data.signalements.length).toBe(2);
-  });
-
-  it('should return 200 with filtered results when contact and localite are provided', async () => {
-    const req = new NextRequest('http://localhost/api/v1/besoins/search?contact=77123456&localite=Thies-Nord');
-    const res = await GET(req);
-    expect(res.status).toBe(200);
-    const json = await res.json();
-    expect(json.success).toBe(true);
     expect(json.data.signalements.length).toBe(2);
   });
 
@@ -103,8 +92,8 @@ describe('GET /api/v1/besoins/search', () => {
     expect(json.data.signalements[0].description).toBe('Old signalement from 2025');
   });
 
-  it('should return 0 results when filtering by non-existent localite', async () => {
-    const req = new NextRequest('http://localhost/api/v1/besoins/search?contact=77123456&localite=NonExistentCity');
+  it('should return 0 results when filtering by non-existent quartier', async () => {
+    const req = new NextRequest('http://localhost/api/v1/besoins/search?contact=77123456&quartier=NonExistentQuartier');
     const res = await GET(req);
     expect(res.status).toBe(200);
     const json = await res.json();

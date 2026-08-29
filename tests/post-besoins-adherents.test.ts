@@ -2,22 +2,24 @@ import { POST } from '../src/app/api/v1/besoins/route';
 import { POST as postAdherent } from '../src/app/api/v1/adherents/route';
 import { prisma } from '../src/core/lib/prisma';
 
-describe('POST endpoints with localite field', () => {
+describe('POST endpoints field mapping', () => {
 
   afterAll(async () => {
     await prisma.besoin.deleteMany({ where: { contact: '99912345' } });
+    await prisma.besoin.deleteMany({ where: { contact: '88999000' } });
     await prisma.adherent.deleteMany({ where: { telephone: '99912345' } });
+    await prisma.adherent.deleteMany({ where: { telephone: '88999000' } });
   });
 
-  describe('POST /api/v1/besoins with localite', () => {
-    it('should create a besoin with localite and map vocalUrl from media_url (201)', async () => {
+  describe('POST /api/v1/besoins', () => {
+    it('should create a besoin with mapped vocalUrl from media_url (201)', async () => {
       const req = {
         json: async () => ({
           contact: '99912345',
-          description: 'Test besoin with localite',
+          description: 'Test besoin field mapping',
           media_url: 'https://example.com/audio.mp3',
           quartier: 'Nguinth',
-          localite: 'Dakar-Plateau',
+          categorie: 'Transport',
           urgence: 'HAUTE',
           statut: 'NOUVEAU'
         })
@@ -27,7 +29,7 @@ describe('POST endpoints with localite field', () => {
       expect(res.status).toBe(201);
       const json = await res.json();
       expect(json.success).toBe(true);
-      expect(json.data.localite).toBe('Dakar-Plateau');
+      expect(json.data.urgence).toBe('HAUTE');
       expect(json.data.vocalUrl).toBe('https://example.com/audio.mp3');
     });
 
@@ -46,15 +48,14 @@ describe('POST endpoints with localite field', () => {
     });
   });
 
-  describe('POST /api/v1/adherents with localite', () => {
-    it('should create an adherent with localite field (201)', async () => {
+  describe('POST /api/v1/adherents', () => {
+    it('should create an adherent with quartier field (201)', async () => {
       const req = {
         json: async () => ({
           telephone: '99912345',
-          nom: 'PostLocalite',
-          prenom: 'Test',
-          quartier: 'Grand Thiès',
-          localite: 'Pikine',
+          nom: 'Test',
+          prenom: 'User',
+          quartier: 'Som',
           profession: 'Enseignant',
           statut: 'ACTIF'
         })
@@ -64,7 +65,7 @@ describe('POST endpoints with localite field', () => {
       expect(res.status).toBe(201);
       const json = await res.json();
       expect(json.success).toBe(true);
-      expect(json.data.localite).toBe('Pikine');
+      expect(json.data.quartier).toBe('Som');
     });
 
     it('should map frontend field aliases correctly', async () => {
@@ -72,9 +73,9 @@ describe('POST endpoints with localite field', () => {
         json: async () => ({
           telephone_citoyen: '88999000',
           nom_citoyen: 'AliasTest',
-          quartier: 'Som',
-          localite: 'Yeumdoum',
-          pole: 'Economie'
+          quartier: 'Nguinth',
+          pole: 'Economie',
+          motivation: 'Très motivé'
         })
       } as any;
 
@@ -84,8 +85,8 @@ describe('POST endpoints with localite field', () => {
       expect(json.success).toBe(true);
       expect(json.data.telephone).toBe('88999000');
       expect(json.data.nom).toBe('AliasTest');
-      expect(json.data.localite).toBe('Yeumdoum');
       expect(json.data.profession).toBe('Economie');
+      expect(json.data.competences).toBe('Très motivé');
     });
   });
 });

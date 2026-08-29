@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-green: #008d36;
+    --brand-yellow: #f59e0b;
+    --brand-dark: #022c16;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.text-brand-green { color: var(--brand-green); }
+.text-brand-yellow { color: var(--brand-yellow); }
+.text-brand-dark { color: var(--brand-dark); }
+.bg-brand-green { background-color: var(--brand-green); }
+.bg-brand-yellow { background-color: var(--brand-yellow); }
+.bg-brand-dark { background-color: var(--brand-dark); }
+.bg-brand-green\/10 { background-color: rgba(0, 141, 54, 0.1); }
+:border-brand-green { border-color: var(--brand-green); }
+.rounded-3xl { border-radius: 1.5rem; }
+.rounded-2xl { border-radius: 1rem; }
+.shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); }
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }

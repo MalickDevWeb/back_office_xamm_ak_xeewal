@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       nom: data.nom || data.nom_citoyen || '',
       telephone: data.telephone || data.telephone_citoyen || '',
       quartier: data.quartier || '',
-      localite: data.localite || null,
+
       profession: data.profession || data.pole || null,
       competences: data.competences || data.motivation || null,
       disponibilite: data.disponibilite || null,

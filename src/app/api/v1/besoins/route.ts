@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     const payload: any = {
       description: data.description,
       quartier: data.quartier,
-      localite: data.localite || null,
+
       urgence: data.urgence || 'MOYENNE',
       statut: data.statut || 'EN_ATTENTE',
       contact: data.contact || null,
