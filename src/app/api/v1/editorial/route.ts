@@ -15,7 +15,8 @@ export async function GET(req: Request) {
     const all = await prisma.editorial.findMany();
     return NextResponse.json({ success: true, data: all });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Erreur base de données" }, { status: 500 });
+    console.error('GET /editorial error:', error);
+    return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 

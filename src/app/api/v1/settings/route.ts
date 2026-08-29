@@ -13,7 +13,8 @@ export async function GET() {
     
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Erreur base de données" }, { status: 500 });
+    console.error('GET /settings error:', error);
+    return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 

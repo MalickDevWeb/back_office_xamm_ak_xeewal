@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
   
   // Exclude some public POST endpoints if needed (e.g. adherents, besoins, idees, messages can be public POST)
   // For maximum security, we can keep them open but rate-limited, but here we just check if it's protected
-  const publicPostEndpoints = ['/api/v1/besoins', '/api/v1/adherents', '/api/v1/idees', '/api/v1/messages'];
+  const publicPostEndpoints = ['/api/v1/besoins', '/api/v1/adherents', '/api/v1/idees', '/api/v1/messages', '/api/v1/upload-audio'];
   const isPublicPost = publicPostEndpoints.includes(request.nextUrl.pathname);
 
   if (isProtectedPath && protectedMethods.includes(request.method) && !isPublicPost) {

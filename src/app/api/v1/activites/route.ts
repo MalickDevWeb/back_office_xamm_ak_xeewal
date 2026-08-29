@@ -8,7 +8,8 @@ export async function GET() {
     const activites = await prisma.activite.findMany({ orderBy: { date: 'desc' } });
     return NextResponse.json({ success: true, data: activites, total: activites.length });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Erreur base de données" }, { status: 500 });
+    console.error('GET /activites error:', error);
+    return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 

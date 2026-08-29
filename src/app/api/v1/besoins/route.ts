@@ -81,11 +81,9 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    // Map frontend fields to Prisma fields
     const payload: any = {
       description: data.description,
       quartier: data.quartier,
-
       urgence: data.urgence || 'MOYENNE',
       statut: data.statut || 'EN_ATTENTE',
       contact: data.contact || null,
@@ -93,6 +91,24 @@ export async function POST(req: Request) {
       vocalUrl: data.vocalUrl || data.media_url || null,
       photoUrl: data.photoUrl || data.media_url || null
     };
+
+    // Auto-create/check Adherent based on telephone
+    if (data.telephone) {
+      const existingAdherent = await prisma.adherent.findFirst({
+        where: { telephone: data.telephone }
+      });
+      if (!existingAdherent) {
+        await prisma.adherent.create({
+          data: {
+            telephone: data.telephone,
+            prenom: data.nom || 'Citoyen',
+            nom: '',
+            quartier: data.quartier || 'Non défini',
+            statut: 'NOUVEAU'
+          }
+        });
+      }
+    }
 
     const newBesoin = await prisma.besoin.create({ data: payload });
     return NextResponse.json({ success: true, data: newBesoin }, { status: 201 });
