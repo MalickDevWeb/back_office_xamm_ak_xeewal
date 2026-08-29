@@ -116,7 +116,7 @@ export async function POST(req: Request) {
     }
 
     const newBesoin = await prisma.besoin.create({ data: payload });
-    return NextResponse.json({ success: true, data: newBesoin }, { status: 201 }, { headers: corsHeaders });
+    return NextResponse.json({ success: true, data: newBesoin }, { status: 201 });
   } catch (error: any) {
     console.error('POST /besoins error:', error);
     return NextResponse.json({ success: false, message: "Erreur lors de la création", error: error.message }, { status: 500 });
