@@ -31,6 +31,29 @@ export class AuthService {
       token
     };
   }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await prisma.adminUser.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error('Utilisateur introuvable');
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) {
+      throw new Error('Mot de passe actuel incorrect');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.adminUser.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
+
+    return {
+      success: true,
+      message: 'Mot de passe mis à jour avec succès'
+    };
+  }
 }
 
 export const authService = new AuthService();

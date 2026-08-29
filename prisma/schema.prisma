@@ -19,38 +19,62 @@ model AdminUser {
 }
 
 model Adherent {
-  id           String   @id @default(uuid())
-  prenom       String
-  nom          String
-  telephone    String
-  quartier     String
-  profession   String?
-  competences  String?
-  disponibilite String?
-  statut       String   @default("NOUVEAU") // NOUVEAU, ACTIF, SUSPENDU
-  createdAt    DateTime @default(now())
+  id              String   @id @default(uuid())
+  prenom          String
+  nom             String
+  telephone       String
+  quartier        String
+  localite        String?
+  profession      String?
+  competences     String?
+  disponibilite   String?
+  carteRectoUrl   String?
+  carteVersoUrl   String?
+  statut          String   @default("NOUVEAU") // NOUVEAU, ACTIF, SUSPENDU
+  createdAt       DateTime @default(now())
+
+  @@index([telephone])
+  @@index([quartier])
+  @@index([localite])
+  @@index([statut])
+  @@index([createdAt])
 }
 
 model Besoin {
   id           String   @id @default(uuid())
   description  String
+  categorie    String?
   quartier     String
+  localite     String?
   photoUrl     String?
+  vocalUrl     String?  // URL Cloudinary du message vocal
   contact      String?
   urgence      String   @default("MOYENNE") // HAUTE, MOYENNE, BASSE
   statut       String   @default("EN_ATTENTE") // EN_ATTENTE, EN_COURS, RESOLU
   createdAt    DateTime @default(now())
+
+  @@index([contact])
+  @@index([quartier])
+  @@index([localite])
+  @@index([statut])
+  @@index([urgence])
+  @@index([createdAt])
 }
 
 model Idee {
   id           String   @id @default(uuid())
   titre        String
   description  String
+  categorie    String?
   auteur       String?
   pole         String?
   votes        Int      @default(0)
   statut       String   @default("NOUVELLE") // NOUVELLE, A_LETUDE, VALIDEE, REJETEE
   createdAt    DateTime @default(now())
+
+  @@index([statut])
+  @@index([votes])
+  @@index([createdAt])
 }
 
 model Commission {
@@ -58,8 +82,13 @@ model Commission {
   nom          String
   responsable  String?
   membresCount Int      @default(0)
+  reunions     Int      @default(0)
+  dernierProjet String?
   statut       String   @default("ACTIVE")
   createdAt    DateTime @default(now())
+
+  @@index([statut])
+  @@index([createdAt])
 }
 
 model Sondage {
@@ -69,6 +98,9 @@ model Sondage {
   statut       String   @default("ACTIF") // ACTIF, CLOTURE
   options      SondageOption[]
   createdAt    DateTime @default(now())
+
+  @@index([statut])
+  @@index([createdAt])
 }
 
 model SondageOption {
@@ -111,6 +143,10 @@ model Message {
   contenu   String   @db.Text
   lu        Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([lu])
+  @@index([createdAt])
+  @@index([telephone])
 }
 
 model Settings {
@@ -125,4 +161,19 @@ model Editorial {
   page      String   @unique // "mouvement", "axes"
   content   String   @db.Text // JSON stringifié
   updatedAt DateTime @updatedAt
+}
+
+// Options dynamiques pour les selects (quartiers, axes, catégories, etc.)
+model Option {
+  id        String   @id @default(uuid())
+  type      String   // "quartier", "axe", "categorie", "statut", "urgence", "pole"
+  value     String   // Valeur stockée en base
+  label     String   // Label affiché à l'utilisateur
+  ordre     Int      @default(0)
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, value])
+  @@index([type])
 }

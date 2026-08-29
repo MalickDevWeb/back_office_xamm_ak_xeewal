@@ -6,10 +6,10 @@ async function main() {
   // Admin User
   const password = await bcrypt.hash('admin123', 10);
   await prisma.adminUser.upsert({
-    where: { email: 'admin@jammakxeewal.org' },
+    where: { email: 'admin@gmail.com' },
     update: { password },
     create: {
-      email: 'admin@jammakxeewal.org',
+      email: 'admin@gmail.com',
       password,
       name: 'Super Administrateur',
       role: 'ADMIN'
@@ -85,6 +85,106 @@ async function main() {
     create: { page: 'axes', content: JSON.stringify(axesContent) }
   });
   console.log('Axes editorial content seeded');
+
+  // Options dynamiques - Quartiers
+  const quartiers = [
+    { value: 'nguinth', label: 'Nguinth', ordre: 1 },
+    { value: 'grand_thies', label: 'Grand Thiès', ordre: 2 },
+    { value: 'keur_mame_el_hadj', label: 'Keur Mame El Hadj', ordre: 3 },
+    { value: 'medina_fall', label: 'Médina Fall', ordre: 4 },
+    { value: 'som', label: 'Som', ordre: 5 },
+  ];
+
+  for (const q of quartiers) {
+    await prisma.option.upsert({
+      where: { type_value: { type: 'quartier', value: q.value } },
+      update: { label: q.label, ordre: q.ordre },
+      create: { type: 'quartier', ...q }
+    });
+  }
+  console.log('Quartiers seeded');
+
+  // Options dynamiques - Axes
+  const axes = [
+    { value: 'education', label: 'Éducation et formation', ordre: 1 },
+    { value: 'emploi', label: 'Emploi et entrepreneuriat', ordre: 2 },
+    { value: 'jeunesse', label: 'Jeunesse, sport et culture', ordre: 3 },
+    { value: 'environnement', label: 'Environnement et cadre de vie', ordre: 4 },
+    { value: 'autre', label: 'Autre', ordre: 5 },
+  ];
+
+  for (const a of axes) {
+    await prisma.option.upsert({
+      where: { type_value: { type: 'axe', value: a.value } },
+      update: { label: a.label, ordre: a.ordre },
+      create: { type: 'axe', ...a }
+    });
+  }
+  console.log('Axes seeded');
+
+  // Options dynamiques - Pôles
+  const poles = [
+    { value: 'dev_humain', label: 'Développement Humain', ordre: 1 },
+    { value: 'eco_innovation', label: 'Économie & Innovation', ordre: 2 },
+    { value: 'environnement', label: 'Environnement', ordre: 3 },
+  ];
+
+  for (const p of poles) {
+    await prisma.option.upsert({
+      where: { type_value: { type: 'pole', value: p.value } },
+      update: { label: p.label, ordre: p.ordre },
+      create: { type: 'pole', ...p }
+    });
+  }
+  console.log('Pôles seeded');
+
+  // Options dynamiques - Catégories d'activités
+  const categories = [
+    { value: 'projet', label: 'Projet', ordre: 1 },
+    { value: 'meeting', label: 'Réunion', ordre: 2 },
+    { value: 'terrain', label: 'Terrain', ordre: 3 },
+  ];
+
+  for (const c of categories) {
+    await prisma.option.upsert({
+      where: { type_value: { type: 'categorie_activite', value: c.value } },
+      update: { label: c.label, ordre: c.ordre },
+      create: { type: 'categorie_activite', ...c }
+    });
+  }
+  console.log('Catégories seeded');
+
+  // Options dynamiques - Statuts besoins
+  const statuts = [
+    { value: 'EN_ATTENTE', label: 'En attente', ordre: 1 },
+    { value: 'EN_COURS', label: 'En cours', ordre: 2 },
+    { value: 'RESOLU', label: 'Résolu', ordre: 3 },
+  ];
+
+  for (const s of statuts) {
+    await prisma.option.upsert({
+      where: { type_value: { type: 'statut_besoin', value: s.value } },
+      update: { label: s.label, ordre: s.ordre },
+      create: { type: 'statut_besoin', ...s }
+    });
+  }
+  console.log('Statuts seeded');
+
+  // Options dynamiques - Urgences
+  const urgences = [
+    { value: 'HAUTE', label: 'Haute', ordre: 1 },
+    { value: 'MOYENNE', label: 'Moyenne', ordre: 2 },
+    { value: 'BASSE', label: 'Basse', ordre: 3 },
+  ];
+
+  for (const u of urgences) {
+    await prisma.option.upsert({
+      where: { type_value: { type: 'urgence', value: u.value } },
+      update: { label: u.label, ordre: u.ordre },
+      create: { type: 'urgence', ...u }
+    });
+  }
+  console.log('Urgences seeded');
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect());
