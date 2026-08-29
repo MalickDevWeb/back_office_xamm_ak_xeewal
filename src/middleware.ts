@@ -23,8 +23,6 @@ export async function middleware(request: NextRequest) {
   const protectedMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
   const isProtectedPath = request.nextUrl.pathname.startsWith('/api/v1/') && !request.nextUrl.pathname.startsWith('/api/v1/auth');
   
-  // Exclude some public POST endpoints if needed (e.g. adherents, besoins, idees, messages can be public POST)
-  // For maximum security, we can keep them open but rate-limited, but here we just check if it's protected
   const publicPostEndpoints = ['/api/v1/besoins', '/api/v1/adherents', '/api/v1/idees', '/api/v1/messages', '/api/v1/upload-audio', '/api/v1/upload-public'];
   const isPublicPost = publicPostEndpoints.includes(request.nextUrl.pathname);
 
@@ -45,7 +43,7 @@ export async function middleware(request: NextRequest) {
 
   // Forward the request and attach CORS headers
   const response = NextResponse.next();
-  response.headers.set('Access-Control-Allow-Origin', 'http://localhost:4200');
+  response.headers.set('Access-Control-Allow-Origin', corsHeaders['Access-Control-Allow-Origin']);
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
