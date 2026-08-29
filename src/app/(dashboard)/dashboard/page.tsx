@@ -8,7 +8,7 @@ export default async function DashboardPage() {
   return (
     <div className="p-8">
       <h1 className="text-3xl font-black text-gray-900 mb-2">Tableau de bord</h1>
-      <p className="text-gray-600 mb-8">Vue d'ensemble du mouvement JÀMM AK XÉEWAL</p>
+      <p className="text-gray-600 mb-8">Vue d&apos;ensemble du mouvement JÀMM AK XÉEWAL</p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
 
       <div className="bg-white rounded-2xl p-6 shadow border border-gray-100">
         <h3 className="text-lg font-black text-gray-900 mb-4">Raccourci quartiers</h3>
-        <p className="text-gray-500">Gérez vos quartiers depuis l'onglet Options</p>
+        <p className="text-gray-500">Gérez vos quartiers depuis l&apos;onglet Options</p>
       </div>
     </div>
   );

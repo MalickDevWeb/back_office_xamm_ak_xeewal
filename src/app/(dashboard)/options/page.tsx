@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Option {
   id: string;
@@ -19,7 +19,7 @@ export default function OptionsAdminPage() {
   const [form, setForm] = useState({ type: 'quartier', value: '', label: '' });
   const [editId, setEditId] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/v1/options?type=${selectedType}`);
@@ -30,11 +30,11 @@ export default function OptionsAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedType]);
 
   useEffect(() => {
     loadData();
-  }, [selectedType]);
+  }, [selectedType, loadData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +72,7 @@ export default function OptionsAdminPage() {
 
       {/* Type selector */}
       <div className="mb-6">
-        <label className="block text-sm font-bold text-gray-700 mb-2">Type d'option</label>
+        <label className="block text-sm font-bold text-gray-700 mb-2">Type d&apos;option</label>
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
