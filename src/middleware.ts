@@ -3,14 +3,10 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 export async function middleware(request: NextRequest) {
-  // CORS Handling
-  const origin = request.headers.get('origin') || '*';
-  const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['*'];
-  
-  const isAllowedOrigin = allowedOrigins.includes('*') || allowedOrigins.includes(origin);
+  // CORS Handling - wildcard for PWA access, no credentials needed for JWT
   const corsHeaders = {
-    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : allowedOrigins[0],
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 
@@ -43,10 +39,9 @@ export async function middleware(request: NextRequest) {
 
   // Forward the request and attach CORS headers
   const response = NextResponse.next();
-  response.headers.set('Access-Control-Allow-Origin', corsHeaders['Access-Control-Allow-Origin']);
+  response.headers.set('Access-Control-Allow-Origin', '*');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
   return response;
 }
 
