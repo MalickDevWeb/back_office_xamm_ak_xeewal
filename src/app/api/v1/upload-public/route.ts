@@ -43,10 +43,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       url: result.secure_url
-    }, { status: 200 });
+    }, { status: 200, headers: corsHeaders });
     
   } catch (error: any) {
     console.error("Erreur d'upload public:", error);
     return NextResponse.json({ success: false, message: 'Erreur serveur', error: error.message }, { status: 500 });
   }
 }
+
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};

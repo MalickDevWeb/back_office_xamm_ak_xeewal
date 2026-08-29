@@ -70,10 +70,17 @@ export async function POST(req: NextRequest) {
       public_id: result.public_id,
       format: result.format,
       size_bytes: result.bytes,
-    }, { status: 200 });
+    }, { status: 200, headers: corsHeaders });
 
   } catch (error: any) {
     console.error('Erreur upload audio:', error);
     return NextResponse.json({ success: false, message: "Erreur lors de l'upload du message vocal.", error: error }, { status: 500 });
   }
 }
+
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
