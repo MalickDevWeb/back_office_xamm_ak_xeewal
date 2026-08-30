@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Aucun fichier fourni' }, { status: 400 });
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ success: false, message: 'Fichier trop volumineux (max 10 Mo).' }, { status: 400 });
+    if (file.size > 15 * 1024 * 1024) {
+      return NextResponse.json({ success: false, message: 'Fichier trop volumineux (max 15 Mo).' }, { status: 400 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
