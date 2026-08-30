@@ -38,7 +38,7 @@ export const BesoinSchema = z.object({
   contact: z.string().max(100).optional().nullable(),
   statut: z.enum(['EN_ATTENTE', 'EN_COURS', 'RESOLU']).optional(),
   vocalUrl: z.string().url().optional().nullable(),
-  photoUrl: z.string().url().optional().nullable(),
+  photoUrl: z.string().max(2000).optional().nullable(),
 });
 
 export const IdeeSchema = z.object({
