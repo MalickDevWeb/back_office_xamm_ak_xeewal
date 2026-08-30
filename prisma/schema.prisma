@@ -38,6 +38,17 @@ model Adherent {
   @@index([createdAt])
 }
 
+model Personne {
+  id        String   @id @default(uuid())
+  telephone String   @unique
+  nom       String?
+  besoins   Besoin[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([telephone])
+}
+
 model Besoin {
   id          String   @id @default(uuid())
   description String
@@ -50,11 +61,15 @@ model Besoin {
   categorie   String?
   vocalUrl    String?
 
+  personneId  String?
+  personne    Personne? @relation(fields: [personneId], references: [id])
+
   @@index([contact])
   @@index([quartier])
   @@index([statut])
   @@index([urgence])
   @@index([createdAt])
+  @@index([personneId])
 }
 
 model Idee {

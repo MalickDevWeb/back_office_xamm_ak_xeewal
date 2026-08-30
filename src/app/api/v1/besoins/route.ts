@@ -63,7 +63,8 @@ export async function GET(req: Request) {
 
     const besoins = await prisma.besoin.findMany({
       where,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: { personne: true }
     });
 
     return NextResponse.json({
@@ -97,22 +98,20 @@ export async function POST(req: Request) {
       photoUrl: data.photoUrl || data.media_url || null
     };
 
-    // Auto-create/check Adherent based on telephone
+    // Identifier ou créer la Personne par son numéro de téléphone
     if (data.telephone) {
-      const existingAdherent = await prisma.adherent.findFirst({
+      let personne = await prisma.personne.findUnique({
         where: { telephone: data.telephone }
       });
-      if (!existingAdherent) {
-        await prisma.adherent.create({
+      if (!personne) {
+        personne = await prisma.personne.create({
           data: {
             telephone: data.telephone,
-            prenom: data.nom || 'Citoyen',
-            nom: '',
-            quartier: data.quartier || 'Non défini',
-            statut: 'NOUVEAU'
+            nom: data.nom || 'Anonyme'
           }
         });
       }
+      payload.personneId = personne.id;
     }
 
     const newBesoin = await prisma.besoin.create({ data: payload });
