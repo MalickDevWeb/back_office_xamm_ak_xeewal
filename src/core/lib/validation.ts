@@ -9,7 +9,7 @@ export const LoginSchema = z.object({
 export const AdherentSchema = z.object({
   prenom: z.string().min(1, 'Prénom requis').max(100),
   nom: z.string().min(1, 'Nom requis').max(100),
-  telephone: z.string().min(1, 'Téléphone requis').max(20),
+  telephone: z.string().regex(/^(\+221[\s\-]?)?[7]\d[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/, 'Format de téléphone invalide'),
   quartier: z.string().min(1, 'Quartier requis').max(100),
   profession: z.string().max(100).optional().nullable(),
   competences: z.string().max(500).optional().nullable(),

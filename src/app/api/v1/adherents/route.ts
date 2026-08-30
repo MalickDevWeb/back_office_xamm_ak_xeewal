@@ -81,6 +81,16 @@ export async function POST(req: Request) {
       statut: data.statut || 'NOUVEAU'
     };
 
+    const existing = await prisma.adherent.findFirst({
+      where: { telephone: payload.telephone }
+    });
+    if (existing) {
+      return NextResponse.json(
+        { success: false, message: 'Ce numéro de téléphone est déjà enregistré.' },
+        { status: 409 }
+      );
+    }
+
     const newAdherent = await prisma.adherent.create({ data: payload });
     return NextResponse.json({ success: true, data: newAdherent }, { status: 201 });
   } catch (error: any) {

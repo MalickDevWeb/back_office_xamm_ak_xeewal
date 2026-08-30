@@ -22,7 +22,7 @@ model Adherent {
   id            String   @id @default(uuid())
   prenom        String
   nom           String
-  telephone     String
+  telephone     String   @unique
   quartier      String
   profession    String?
   competences   String?
