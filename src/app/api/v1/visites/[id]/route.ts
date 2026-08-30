@@ -1,8 +1,8 @@
 export const runtime = 'nodejs';
-import { validateInput, validationErrorResponse, ActiviteSchema } from '../../../../core/lib/validation';
+import { validateInput, validationErrorResponse, VisiteSchema } from '../../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
-import { prisma } from '../../../../core/lib/prisma';
-import { withAuth } from '../../../../core/middlewares/authGuard';
+import { prisma } from '../../../../../core/lib/prisma';
+import { withAuth } from '../../../../../core/middlewares/authGuard';
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
@@ -11,36 +11,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// GET /api/v1/activites
-export async function GET() {
-  try {
-    const activites = await prisma.activite.findMany({ orderBy: { date: 'desc' } });
-    return NextResponse.json({ success: true, data: activites, total: activites.length });
-  } catch (error) {
-    console.error('GET /activites error:', error);
-    return NextResponse.json({ success: false, message: "Erreur base de données", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
-  }
-}
-
-// POST /api/v1/activites - JSON only (legacy)
-export async function POST(req: Request) {
-  return withAuth(req as any, async (req: Request) => {
-    try {
-      const data = await req.json();
-      const validation = validateInput(ActiviteSchema, data);
-      if (!validation.success) {
-        return validationErrorResponse(validation.error);
-      }
-      const newAct = await prisma.activite.create({ data: validation.data as any });
-      return NextResponse.json({ success: true, data: newAct }, { status: 201 });
-    } catch (error: any) {
-      console.error('POST /activites error:', error);
-      return NextResponse.json({ success: false, message: "Erreur lors de la création", error: error.message }, { status: 500 });
-    }
-  });
-}
-
-// PUT /api/v1/activites/:id - supports both JSON and multipart/form-data
+// PUT /api/v1/visites/:id - supports both JSON and multipart/form-data
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   return withAuth(req as any, async (req: Request) => {
     try {
@@ -59,7 +30,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         data = {
           titre: formData.get('titre') as string,
           description: formData.get('description') as string | null,
-          categorie: formData.get('categorie') as string,
+          lieu: formData.get('lieu') as string | null,
           date: formData.get('date') as string | null,
           typeMedia: (formData.get('typeMedia') as string) || 'PHOTOS',
           statut: (formData.get('statut') as string) || 'PUBLIE',
@@ -79,14 +50,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         newFiles = formData.getAll('files') as File[];
         
         // Validate
-        const validation = validateInput(ActiviteSchema, data);
+        const validation = validateInput(VisiteSchema, data);
         if (!validation.success) {
           return validationErrorResponse(validation.error);
         }
       } else {
         // Handle JSON body
         data = await req.json();
-        const validation = validateInput(ActiviteSchema, data);
+        const validation = validateInput(VisiteSchema, data);
         if (!validation.success) {
           return validationErrorResponse(validation.error);
         }
@@ -104,7 +75,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             cloudinary.uploader.upload_stream(
               {
                 resource_type: 'auto',
-                folder: 'jamm-ak-xeewal/activites',
+                folder: 'jamm-ak-xeewal/visites',
               },
               (error, result) => {
                 if (error) reject(error);
@@ -129,41 +100,41 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         }
       }
       
-      const mediaUrlsValue = mediaUrls.length > 0 ? mediaUrls : undefined;
+      const mediaUrl = mediaUrls.length > 0 ? mediaUrls.join(',') : undefined;
       
       const updateData: any = {
         titre: data.titre,
         description: data.description,
-        categorie: data.categorie,
+        lieu: data.lieu,
         date: data.date ? new Date(data.date) : undefined,
         typeMedia,
-        mediaUrls: mediaUrlsValue,
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
         mediaCount: mediaUrls.length,
         statut: data.statut,
       };
       
-      const updated = await prisma.activite.update({
+      const updated = await prisma.visite.update({
         where: { id },
         data: updateData,
       });
       
       return NextResponse.json({ success: true, data: updated });
     } catch (error: any) {
-      console.error('PUT /activites error:', error);
+      console.error('PUT /visites error:', error);
       return NextResponse.json({ success: false, message: "Erreur lors de la modification", error: error.message }, { status: 500 });
     }
   });
 }
 
-// DELETE /api/v1/activites/:id
+// DELETE /api/v1/visites/:id
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   return withAuth(req as any, async (req: Request) => {
     try {
       const { id } = params;
-      await prisma.activite.delete({ where: { id } });
-      return NextResponse.json({ success: true, message: 'Activité supprimée' });
+      await prisma.visite.delete({ where: { id } });
+      return NextResponse.json({ success: true, message: 'Visite supprimée' });
     } catch (error) {
-      console.error('DELETE /activites error:', error);
+      console.error('DELETE /visites error:', error);
       return NextResponse.json({ success: false, message: "Erreur lors de la suppression" }, { status: 500 });
     }
   });
