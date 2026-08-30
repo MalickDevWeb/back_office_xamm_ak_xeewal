@@ -25,18 +25,7 @@ export const ActiviteSchema = z.object({
   categorie: z.string().min(1, 'Catégorie requise').max(100),
   date: z.string().datetime().optional().nullable(),
   typeMedia: z.enum(['PHOTOS', 'VIDEOS']).optional(),
-  mediaUrls: z.array(z.string().url()).optional().nullable(),
-  mediaCount: z.number().int().min(0).optional(),
-  statut: z.enum(['PUBLIE', 'BROUILLON']).optional(),
-});
-
-export const VisiteSchema = z.object({
-  titre: z.string().min(1, 'Titre requis').max(200),
-  description: z.string().max(2000).optional().nullable(),
-  lieu: z.string().max(100).optional().nullable(),
-  date: z.string().datetime().optional().nullable(),
-  typeMedia: z.enum(['PHOTOS', 'VIDEOS']).optional(),
-  mediaUrls: z.array(z.string().url()).optional().nullable(),
+  mediaUrl: z.string().max(2000).optional().nullable(),
   mediaCount: z.number().int().min(0).optional(),
   statut: z.enum(['PUBLIE', 'BROUILLON']).optional(),
 });
@@ -125,7 +114,6 @@ export const SettingsSchema = z.object({
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type AdherentInput = z.infer<typeof AdherentSchema>;
 export type ActiviteInput = z.infer<typeof ActiviteSchema>;
-export type VisiteInput = z.infer<typeof VisiteSchema>;
 export type BesoinInput = z.infer<typeof BesoinSchema>;
 export type IdeeInput = z.infer<typeof IdeeSchema>;
 export type MessageInput = z.infer<typeof MessageSchema>;

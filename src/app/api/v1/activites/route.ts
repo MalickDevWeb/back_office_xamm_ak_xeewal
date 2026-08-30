@@ -3,15 +3,7 @@ import { validateInput, validationErrorResponse, ActiviteSchema } from '../../..
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 import { withAuth } from '../../../../core/middlewares/authGuard';
-import { v2 as cloudinary } from 'cloudinary';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// GET /api/v1/activites
 export async function GET() {
   try {
     const activites = await prisma.activite.findMany({ orderBy: { date: 'desc' } });
@@ -22,16 +14,15 @@ export async function GET() {
   }
 }
 
-// POST /api/v1/activites - JSON only (legacy)
 export async function POST(req: Request) {
   return withAuth(req as any, async (req: Request) => {
     try {
       const data = await req.json();
-      const validation = validateInput(ActiviteSchema, data);
-      if (!validation.success) {
-        return validationErrorResponse(validation.error);
-      }
-      const newAct = await prisma.activite.create({ data: validation.data as any });
+    const validation = validateInput(ActiviteSchema, data);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
+      const newAct = await prisma.activite.create({ data });
       return NextResponse.json({ success: true, data: newAct }, { status: 201 });
     } catch (error: any) {
       console.error('POST /activites error:', error);
@@ -40,117 +31,35 @@ export async function POST(req: Request) {
   });
 }
 
-// PUT /api/v1/activites/:id - supports both JSON and multipart/form-data
+// PUT /api/v1/activites/:id
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   return withAuth(req as any, async (req: Request) => {
     try {
+      const data = await req.json();
+    const validation = validateInput(ActiviteSchema, data);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
       const { id } = params;
-      const contentType = req.headers.get('content-type') || '';
-      
-      let data: any;
-      let newFiles: File[] = [];
-      let existingMediaUrls: string[] = [];
-      
-      if (contentType.includes('multipart/form-data')) {
-        // Handle multipart form data with files
-        const formData = await req.formData();
-        
-        // Extract text fields
-        data = {
-          titre: formData.get('titre') as string,
-          description: formData.get('description') as string | null,
-          categorie: formData.get('categorie') as string,
-          date: formData.get('date') as string | null,
-          typeMedia: (formData.get('typeMedia') as string) || 'PHOTOS',
-          statut: (formData.get('statut') as string) || 'PUBLIE',
-        };
-        
-        // Get existing media URLs if provided
-        const existingUrlsJson = formData.get('existingMediaUrls') as string | null;
-        if (existingUrlsJson) {
-          try {
-            existingMediaUrls = JSON.parse(existingUrlsJson);
-          } catch (e) {
-            existingMediaUrls = [];
-          }
-        }
-        
-        // Get new files
-        newFiles = formData.getAll('files') as File[];
-        
-        // Validate
-        const validation = validateInput(ActiviteSchema, data);
-        if (!validation.success) {
-          return validationErrorResponse(validation.error);
-        }
-      } else {
-        // Handle JSON body
-        data = await req.json();
-        const validation = validateInput(ActiviteSchema, data);
-        if (!validation.success) {
-          return validationErrorResponse(validation.error);
-        }
-      }
-      
-      // Upload new files if any
-      let mediaUrls: string[] = [...existingMediaUrls];
-      
-      if (newFiles && newFiles.length > 0) {
-        const uploadPromises = newFiles.map(async (file) => {
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          
-          return new Promise<string>((resolve, reject) => {
-            cloudinary.uploader.upload_stream(
-              {
-                resource_type: 'auto',
-                folder: 'jamm-ak-xeewal/activites',
-              },
-              (error, result) => {
-                if (error) reject(error);
-                else resolve(result!.secure_url);
-              }
-            ).end(buffer);
-          });
-        });
-        
-        const newUrls = await Promise.all(uploadPromises);
-        mediaUrls = [...mediaUrls, ...newUrls];
-      }
-      
-      // Determine typeMedia from first media URL
-      let typeMedia = data.typeMedia;
-      if (mediaUrls.length > 0) {
-        const firstUrl = mediaUrls[0];
-        if (firstUrl.match(/\.(mp4|webm|mov)/i)) {
-          typeMedia = 'VIDEOS';
-        } else {
-          typeMedia = 'PHOTOS';
-        }
-      }
-      
-      const mediaUrlsValue = mediaUrls.length > 0 ? mediaUrls : undefined;
-      
-      const updateData: any = {
-        titre: data.titre,
-        description: data.description,
-        categorie: data.categorie,
-        date: data.date ? new Date(data.date) : undefined,
-        typeMedia,
-        mediaUrls: mediaUrlsValue,
-        mediaCount: mediaUrls.length,
-        statut: data.statut,
-      };
       
       const updated = await prisma.activite.update({
         where: { id },
-        data: updateData,
+        data: {
+          titre: data.titre,
+          description: data.description,
+          categorie: data.categorie,
+          date: data.date ? new Date(data.date) : undefined,
+          typeMedia: data.typeMedia,
+          mediaUrl: data.mediaUrl,
+          mediaCount: data.mediaCount,
+          statut: data.statut
+        }
       });
       
       return NextResponse.json({ success: true, data: updated });
-    } catch (error: any) {
+    } catch (error) {
       console.error('PUT /activites error:', error);
-      return NextResponse.json({ success: false, message: "Erreur lors de la modification", error: error.message }, { status: 500 });
+      return NextResponse.json({ success: false, message: "Erreur lors de la modification" }, { status: 500 });
     }
   });
 }
