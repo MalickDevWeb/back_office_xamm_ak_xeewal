@@ -99,6 +99,18 @@ export const EditorialSchema = z.object({
   content: z.any().optional(),
 });
 
+export const EvenementSchema = z.object({
+  titre: z.string().min(1, 'Titre requis').max(200),
+  description: z.string().max(1000).optional().nullable(),
+  date: z.string().datetime('Date invalide'),
+  heureDebut: z.string().regex(/^([01]?\d|2[0-3]):([0-5]\d)$/, 'Heure invalide (HH:MM)').optional().nullable(),
+  heureFin: z.string().regex(/^([01]?\d|2[0-3]):([0-5]\d)$/, 'Heure invalide (HH:MM)').optional().nullable(),
+  lieu: z.string().max(200).optional().nullable(),
+  categorie: z.enum(['Causerie', 'Rencontre', 'Formation', 'Sport', 'Culture', 'Autre']).optional().nullable(),
+  imageUrl: z.string().url().optional().nullable(),
+  statut: z.enum(['A_VENIR', 'EN_COURS', 'TERMINE', 'ANNULE']).optional(),
+});
+
 export const SettingsSchema = z.object({
   telephone: z.string().max(20).optional(),
   email: z.string().email('Email invalide').optional(),
@@ -125,6 +137,7 @@ export type CompteRenduInput = z.infer<typeof CompteRenduSchema>;
 export type SondageInput = z.infer<typeof SondageSchema>;
 export type OptionInput = z.infer<typeof OptionSchema>;
 export type EditorialInput = z.infer<typeof EditorialSchema>;
+export type EvenementInput = z.infer<typeof EvenementSchema>;
 export type SettingsInput = z.infer<typeof SettingsSchema>;
 
 export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {

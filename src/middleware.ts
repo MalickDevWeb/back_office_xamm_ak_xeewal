@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
   const protectedMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
   const isProtectedPath = request.nextUrl.pathname.startsWith('/api/v1/') && !request.nextUrl.pathname.startsWith('/api/v1/auth');
 
-  const publicPostEndpoints = ['/api/v1/besoins', '/api/v1/adherents', '/api/v1/idees', '/api/v1/messages', '/api/v1/upload-audio', '/api/v1/upload-public'];
+  const publicPostEndpoints = ['/api/v1/besoins', '/api/v1/adherents', '/api/v1/idees', '/api/v1/messages', '/api/v1/upload-audio', '/api/v1/upload-public', '/api/v1/maintenance_sat/login'];
   const isPublicPost = publicPostEndpoints.includes(request.nextUrl.pathname);
 
   if (isProtectedPath && protectedMethods.includes(request.method) && !isPublicPost) {

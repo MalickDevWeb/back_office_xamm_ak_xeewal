@@ -8,7 +8,9 @@ export async function GET() {
   try {
     const settings = await prisma.settings.findMany();
     const data = settings.reduce((acc: any, curr) => {
-      acc[curr.key] = curr.value;
+      if (!curr.key.startsWith('SECRET_')) {
+        acc[curr.key] = curr.value;
+      }
       return acc;
     }, {});
 

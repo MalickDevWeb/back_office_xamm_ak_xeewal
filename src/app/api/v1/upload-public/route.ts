@@ -1,4 +1,5 @@
 export const runtime = 'nodejs';
+export const maxDuration = 300; // 5 minutes (Vercel Pro)
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -7,6 +8,9 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 Mo
+const CHUNK_SIZE = 6 * 1024 * 1024; // 6 Mo par chunk
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,8 +21,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Aucun fichier fourni' }, { status: 400 });
     }
 
-    if (file.size > 50 * 1024 * 1024) {
-      return NextResponse.json({ success: false, message: 'Fichier trop volumineux (max 50 Mo).' }, { status: 400 });
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ success: false, message: 'Fichier trop volumineux (max 100 Mo).' }, { status: 400 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -26,24 +30,45 @@ export async function POST(req: NextRequest) {
     const timestamp = Date.now();
 
     const isVideo = file.type.startsWith('video/');
+    const useChunked = file.size > 20 * 1024 * 1024; // > 20 Mo
+
     const result = await new Promise<any>((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          resource_type: isVideo ? 'video' : 'auto',
-          public_id: `public_${timestamp}`,
-          tags: ['public', 'signalement'],
-          timeout: 120000 // 2 minutes timeout
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      ).end(buffer);
+      if (useChunked) {
+        // Chunked upload pour gros fichiers (plus fiable, reprise sur erreur)
+        const stream = cloudinary.uploader.upload_chunked_stream(
+          {
+            resource_type: isVideo ? 'video' : 'auto',
+            public_id: `public_${timestamp}`,
+            tags: ['public', 'signalement'],
+            chunk_size: CHUNK_SIZE,
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        stream.end(buffer);
+      } else {
+        // Upload standard pour petits fichiers
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: isVideo ? 'video' : 'auto',
+            public_id: `public_${timestamp}`,
+            tags: ['public', 'signalement'],
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(buffer);
+      }
     });
 
     return NextResponse.json({
       success: true,
-      url: result.secure_url
+      url: result.secure_url,
+      duration: result.duration,
+      bytes: result.bytes,
     });
 
   } catch (error: any) {

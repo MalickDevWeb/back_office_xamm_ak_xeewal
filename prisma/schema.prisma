@@ -188,3 +188,22 @@ model Option {
   @@unique([type, value])
   @@index([type])
 }
+
+model Evenement {
+  id          String   @id @default(uuid())
+  titre       String
+  description String?
+  date        DateTime
+  heureDebut  String?
+  heureFin    String?
+  lieu        String?
+  categorie   String?  // Ex: "Causerie", "Rencontre", "Formation"
+  imageUrl    String?
+  statut      String   @default("A_VENIR") // A_VENIR, EN_COURS, TERMINE, ANNULE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+  @@index([statut])
+  @@index([categorie])
+}
