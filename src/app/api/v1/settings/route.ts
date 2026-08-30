@@ -1,8 +1,8 @@
 export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
-
-
+import { validateInput, validationErrorResponse, SettingsSchema } from '../../../../core/lib/validation';
+import { withAuth } from '../../../../core/middlewares/authGuard';
 
 export async function GET() {
   try {
@@ -20,20 +20,26 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const keys = Object.keys(body);
+  return withAuth(req as any, async (req: Request) => {
+    try {
+      const body = await req.json();
+      const validation = validateInput(SettingsSchema, body);
+      if (!validation.success) {
+        return validationErrorResponse(validation.error);
+      }
+      const keys = Object.keys(body);
 
-    for (const key of keys) {
-      await prisma.settings.upsert({
-        where: { key },
-        update: { value: body[key].toString() },
-        create: { key, value: body[key].toString() }
-      });
+      for (const key of keys) {
+        await prisma.settings.upsert({
+          where: { key },
+          update: { value: body[key].toString() },
+          create: { key, value: body[key].toString() }
+        });
+      }
+
+      return NextResponse.json({ success: true, message: "Paramètres mis à jour" }, { status: 200 });
+    } catch (error) {
+      return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
     }
-
-    return NextResponse.json({ success: true, message: "Paramètres mis à jour" }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
-  }
+  });
 }

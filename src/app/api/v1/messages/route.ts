@@ -1,4 +1,5 @@
 export const runtime = 'nodejs';
+import { validateInput, validationErrorResponse, MessageSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 
@@ -41,6 +42,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
+    const validation = validateInput(MessageSchema, data);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
     const newMsg = await prisma.message.create({ data });
     return NextResponse.json({ success: true, data: newMsg }, { status: 201 });
   } catch (error: any) {

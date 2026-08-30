@@ -1,4 +1,5 @@
 export const runtime = 'nodejs';
+import { validateInput, validationErrorResponse, CommissionSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 
@@ -14,6 +15,10 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
+    const validation = validateInput(CommissionSchema, data);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
     const newComm = await prisma.commission.create({ data });
     return NextResponse.json({ success: true, data: newComm }, { status: 201 });
   } catch (error) {

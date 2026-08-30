@@ -1,4 +1,5 @@
 export const runtime = 'nodejs';
+import { validateInput, validationErrorResponse, SondageSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 
@@ -19,6 +20,10 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
+    const validation = validateInput(SondageSchema, data);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
     const newSondage = await prisma.sondage.create({
       data: {
         question: data.question,

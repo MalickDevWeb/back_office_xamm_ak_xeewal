@@ -1,4 +1,5 @@
 export const runtime = 'nodejs';
+import { validateInput, validationErrorResponse, AdherentSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 
@@ -60,6 +61,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
+    const validation = validateInput(AdherentSchema, data);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
 
     // Map frontend fields to Prisma fields
     const payload: any = {

@@ -1,4 +1,5 @@
 export const runtime = 'nodejs';
+import { validateInput, validationErrorResponse, ActiviteSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 import { withAuth } from '../../../../core/middlewares/authGuard';
@@ -17,10 +18,15 @@ export async function POST(req: Request) {
   return withAuth(req as any, async (req: Request) => {
     try {
       const data = await req.json();
+    const validation = validateInput(ActiviteSchema, data);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
       const newAct = await prisma.activite.create({ data });
       return NextResponse.json({ success: true, data: newAct }, { status: 201 });
-    } catch (error) {
-      return NextResponse.json({ success: false, message: "Erreur lors de la création" }, { status: 500 });
+    } catch (error: any) {
+      console.error('POST /activites error:', error);
+      return NextResponse.json({ success: false, message: "Erreur lors de la création", error: error.message }, { status: 500 });
     }
   });
 }
@@ -30,6 +36,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   return withAuth(req as any, async (req: Request) => {
     try {
       const data = await req.json();
+    const validation = validateInput(ActiviteSchema, data);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
       const { id } = params;
       
       const updated = await prisma.activite.update({

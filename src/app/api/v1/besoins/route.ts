@@ -1,4 +1,5 @@
 export const runtime = 'nodejs';
+import { validateInput, validationErrorResponse, BesoinSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 
@@ -80,6 +81,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
+    const validation = validateInput(BesoinSchema, data);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
 
     const payload: any = {
       description: data.description,

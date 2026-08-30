@@ -1,3 +1,4 @@
+import { validateInput, validationErrorResponse, OptionSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
 
@@ -24,7 +25,12 @@ export async function GET(request: Request) {
 // POST /api/v1/options
 export async function POST(request: Request) {
   try {
-    const { type, value, label, ordre } = await request.json();
+    const body = await request.json();
+    const validation = validateInput(OptionSchema, body);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
+    const { type, value, label, ordre } = validation.data;
 
     if (!type || !value || !label) {
       return NextResponse.json({ success: false, message: 'type, value et label requis' }, { status: 400 });
