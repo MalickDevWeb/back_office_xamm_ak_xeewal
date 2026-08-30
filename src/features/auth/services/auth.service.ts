@@ -1,5 +1,5 @@
 import { prisma } from '../../../core/lib/prisma';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { sign, SignOptions } from 'jsonwebtoken';
 
 export class AuthService {
