@@ -35,9 +35,10 @@ export const BesoinSchema = z.object({
   description: z.string().min(1, 'Description requise').max(2000),
   categorie: z.string().max(100).optional().nullable(),
   urgence: z.enum(['BASSE', 'MOYENNE', 'HAUTE']).optional(),
-  contact: z.string().max(20).optional().nullable(),
+  contact: z.string().max(100).optional().nullable(),
   statut: z.enum(['EN_ATTENTE', 'EN_COURS', 'RESOLU']).optional(),
   vocalUrl: z.string().url().optional().nullable(),
+  photoUrl: z.string().url().optional().nullable(),
 });
 
 export const IdeeSchema = z.object({
