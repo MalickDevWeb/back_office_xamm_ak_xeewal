@@ -25,12 +25,14 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
     const timestamp = Date.now();
 
+    const isVideo = file.type.startsWith('video/');
     const result = await new Promise<any>((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
-          resource_type: 'auto',
+          resource_type: isVideo ? 'video' : 'auto',
           public_id: `public_${timestamp}`,
-          tags: ['public', 'signalement']
+          tags: ['public', 'signalement'],
+          timeout: 120000 // 2 minutes timeout
         },
         (error, result) => {
           if (error) reject(error);
