@@ -24,7 +24,10 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       where: { id: params.id }
     });
     return NextResponse.json({ success: true, message: "Supprimé avec succès" });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return NextResponse.json({ success: true, message: "Activité déjà supprimée" });
+    }
     return NextResponse.json({ success: false, message: "Erreur lors de la suppression" }, { status: 500 });
   }
 }
