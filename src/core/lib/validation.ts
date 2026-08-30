@@ -129,8 +129,9 @@ export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): { succe
   if (result.success) {
     return { success: true, data: result.data };
   }
-  const errors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
-  return { success: false, error: errors };
+  const zodError = result.error as any;
+  const errors = (zodError.errors || zodError.issues || []).map((e: any) => `${e.path?.join('.')}: ${e.message}`).join(', ');
+  return { success: false, error: errors || 'Erreur de validation' };
 }
 
 export function validationErrorResponse(error: string, status = 400) {
