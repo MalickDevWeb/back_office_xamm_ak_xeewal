@@ -3,6 +3,20 @@ import { NextResponse } from 'next/server';
 import { prisma } from '../../../../../core/lib/prisma';
 import { withAuth } from '../../../../../core/middlewares/authGuard';
 
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const adherent = await (prisma.adherent as any).findUnique({
+      where: { id: params.id }
+    });
+    if (!adherent) {
+      return NextResponse.json({ success: false, message: "Non trouvé" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, data: adherent });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: "Erreur serveur" }, { status: 500 });
+  }
+}
+
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   // Optionnel: Vous pouvez décommenter withAuth pour protéger explicitement au niveau Node 
   // (le middleware Edge s'en charge déjà, mais au cas où).
