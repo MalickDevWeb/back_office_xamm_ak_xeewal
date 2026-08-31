@@ -1,4 +1,6 @@
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../../core/lib/prisma';
 import { verify } from 'jsonwebtoken';
@@ -27,11 +29,8 @@ export async function GET(req: Request) {
   try {
     requireSuperAdmin(req);
     
-    // Renvoyer les configurations spécifiques
-    const keys = ['SECRET_CLOUDINARY_CLOUD_NAME', 'SECRET_CLOUDINARY_API_KEY', 'SECRET_CLOUDINARY_API_SECRET', 'MAINTENANCE_MODE'];
-    const settings = await prisma.settings.findMany({
-      where: { key: { in: keys } }
-    });
+    // Renvoyer TOUTES les configurations (y compris les SECRET_)
+    const settings = await prisma.settings.findMany();
 
     const data = settings.reduce((acc: any, curr) => {
       acc[curr.key] = curr.value;
@@ -49,10 +48,9 @@ export async function POST(req: Request) {
     requireSuperAdmin(req);
     const body = await req.json();
 
-    const allowedKeys = ['SECRET_CLOUDINARY_CLOUD_NAME', 'SECRET_CLOUDINARY_API_KEY', 'SECRET_CLOUDINARY_API_SECRET', 'MAINTENANCE_MODE'];
-
+    // Permettre la sauvegarde de toutes les clés (le Super Admin a les pleins pouvoirs)
     for (const key of Object.keys(body)) {
-      if (allowedKeys.includes(key)) {
+      if (typeof body[key] === 'string' || typeof body[key] === 'boolean' || typeof body[key] === 'number') {
         await prisma.settings.upsert({
           where: { key },
           update: { value: String(body[key]) },
@@ -62,6 +60,24 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, message: 'Configuration enregistrée' });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    requireSuperAdmin(req);
+    const url = new URL(req.url);
+    const key = url.searchParams.get('key');
+    
+    if (key) {
+      await prisma.settings.deleteMany({
+        where: { key }
+      });
+    }
+
+    return NextResponse.json({ success: true, message: 'Clé supprimée' });
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
   }
