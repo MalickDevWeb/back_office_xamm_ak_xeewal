@@ -15,7 +15,8 @@ export class AuthController {
         );
       }
 
-      const { email, password } = body;
+      const email = body.email.trim().toLowerCase();
+      const password = body.password;
       const result = await authService.login(email, password);
       
       return NextResponse.json({
