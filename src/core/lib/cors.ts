@@ -8,6 +8,6 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': isAllowedOrigin ? origin : allowedOrigins[0],
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Confirm, x-confirm',
   };
 }

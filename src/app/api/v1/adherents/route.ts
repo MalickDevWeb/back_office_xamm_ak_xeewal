@@ -2,6 +2,7 @@ export const runtime = 'nodejs';
 import { validateInput, validationErrorResponse, AdherentSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
+import { sign } from 'jsonwebtoken';
 
 export async function GET(req: Request) {
   try {
@@ -92,7 +93,24 @@ export async function POST(req: Request) {
     }
 
     const newAdherent = await prisma.adherent.create({ data: payload });
-    return NextResponse.json({ success: true, data: newAdherent }, { status: 201 });
+
+    // Générer un token citoyen permanent (sans expiration)
+    const secret = process.env.JWT_SECRET || 'fallback_secret';
+    const citizenToken = sign(
+      { 
+        id: newAdherent.id, 
+        role: 'CITIZEN',
+        telephone: newAdherent.telephone
+      },
+      secret
+      // Pas d'expiresIn → token permanent
+    );
+
+    return NextResponse.json({ 
+      success: true, 
+      data: newAdherent,
+      token: citizenToken
+    }, { status: 201 });
   } catch (error: any) {
     console.error('POST /adherents error:', error);
     return NextResponse.json({ success: false, message: "Erreur lors de la création", error: error.message }, { status: 500 });

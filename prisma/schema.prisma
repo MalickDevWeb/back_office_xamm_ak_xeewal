@@ -207,3 +207,10 @@ model Evenement {
   @@index([statut])
   @@index([categorie])
 }
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  endpoint  String   @unique
+  keys      Json
+  createdAt DateTime @default(now())
+}
