@@ -3,12 +3,20 @@ import { NextResponse } from 'next/server';
 import { prisma } from '../../../../../core/lib/prisma';
 import webpush from 'web-push';
 
-// Configurer web-push
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:contact@jammakxeewal.sn',
-  process.env.VAPID_PUBLIC_KEY || '',
-  process.env.VAPID_PRIVATE_KEY || ''
-);
+// Configurer web-push avec précaution pour éviter les erreurs lors du build Next.js (sur Vercel)
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:contact@jammakxeewal.sn',
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+  } catch (err: any) {
+    console.warn('Erreur lors de la configuration de web-push:', err.message);
+  }
+} else {
+  console.warn('VAPID keys manquantes. Les notifications push ne fonctionneront pas.');
+}
 
 export async function POST(req: Request) {
   try {
