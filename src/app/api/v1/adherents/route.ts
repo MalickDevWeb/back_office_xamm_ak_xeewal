@@ -79,7 +79,8 @@ export async function POST(req: Request) {
       disponibilite: data.disponibilite || null,
       carteRectoUrl: data.carteRectoUrl || data.recto || null,
       carteVersoUrl: data.carteVersoUrl || data.verso || null,
-      statut: data.statut || 'NOUVEAU'
+      statut: data.statut || 'NOUVEAU',
+      poleId: data.poleId || null
     };
 
     const existing = await prisma.adherent.findFirst({

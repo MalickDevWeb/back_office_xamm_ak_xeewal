@@ -17,6 +17,7 @@ export const AdherentSchema = z.object({
   carteRectoUrl: z.string().url().optional().nullable(),
   carteVersoUrl: z.string().url().optional().nullable(),
   statut: z.enum(['NOUVEAU', 'ACTIF', 'SUSPENDU']).optional(),
+  poleId: z.string().optional().nullable(),
 });
 
 export const ActiviteSchema = z.object({
@@ -140,6 +141,13 @@ export type EditorialInput = z.infer<typeof EditorialSchema>;
 export type EvenementInput = z.infer<typeof EvenementSchema>;
 export type SettingsInput = z.infer<typeof SettingsSchema>;
 
+export const PoleSchema = z.object({
+  titre: z.string().min(1, 'Titre requis').max(200),
+  description: z.string().min(1, 'Description requise').max(5000),
+  objectifs: z.string().max(5000).optional().nullable(),
+  statut: z.enum(['PUBLIE', 'BROUILLON']).optional(),
+});
+export type PoleInput = z.infer<typeof PoleSchema>;
 export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {
   const result = schema.safeParse(data);
   if (result.success) {
