@@ -8,7 +8,7 @@ describe('GET /api/v1/besoins/search', () => {
     // Create test adherent
     await prisma.adherent.create({
       data: {
-        telephone: '77123456',
+        telephone: '77122t456',
         nom: 'TestUser',
         prenom: 'Search',
         quartier: 'Nguinth',
