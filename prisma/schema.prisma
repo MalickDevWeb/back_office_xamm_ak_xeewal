@@ -223,7 +223,9 @@ model Pole {
   id          String   @id @default(uuid())
   titre       String
   description String
-  objectifs   String?  // JSON string array of objectives
+  icone       String?
+  numero      String?
+  objectifs   String[]
   statut      String   @default("PUBLIE") // PUBLIE, BROUILLON
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

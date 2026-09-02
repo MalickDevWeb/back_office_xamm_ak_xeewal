@@ -144,7 +144,9 @@ export type SettingsInput = z.infer<typeof SettingsSchema>;
 export const PoleSchema = z.object({
   titre: z.string().min(1, 'Titre requis').max(200),
   description: z.string().min(1, 'Description requise').max(5000),
-  objectifs: z.string().max(5000).optional().nullable(),
+  icone: z.string().max(100).optional().nullable(),
+  numero: z.string().max(10).optional().nullable(),
+  objectifs: z.array(z.string()).optional(),
   statut: z.enum(['PUBLIE', 'BROUILLON']).optional(),
 });
 export type PoleInput = z.infer<typeof PoleSchema>;
