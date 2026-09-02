@@ -32,10 +32,14 @@ model Adherent {
   carteRectoUrl String?
   carteVersoUrl String?
 
+  poleId        String?
+  pole          Pole?    @relation(fields: [poleId], references: [id])
+
   @@index([telephone])
   @@index([quartier])
   @@index([statut])
   @@index([createdAt])
+  @@index([poleId])
 }
 
 model Personne {
@@ -213,4 +217,21 @@ model PushSubscription {
   endpoint  String   @unique
   keys      Json
   createdAt DateTime @default(now())
+}
+
+model Pole {
+  id          String   @id @default(uuid())
+  titre       String
+  description String
+  icone       String?
+  numero      String?
+  objectifs   String[]
+  statut      String   @default("PUBLIE") // PUBLIE, BROUILLON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  adherents   Adherent[]
+
+  @@index([statut])
+  @@index([createdAt])
 }
