@@ -32,14 +32,17 @@ model Adherent {
   carteRectoUrl String?
   carteVersoUrl String?
 
-  poleId        String?
-  pole          Pole?    @relation(fields: [poleId], references: [id])
+  poleId          String?
+  pole            Pole?    @relation(fields: [poleId], references: [id])
+
+  agentTerrainId  String?
 
   @@index([telephone])
   @@index([quartier])
   @@index([statut])
   @@index([createdAt])
   @@index([poleId])
+  @@index([agentTerrainId])
 }
 
 model Personne {
@@ -233,5 +236,22 @@ model Pole {
   adherents   Adherent[]
 
   @@index([statut])
+  @@index([createdAt])
+}
+
+model AgentTerrain {
+  id          String   @id @default(uuid())
+  prenom      String
+  nom         String
+  telephone   String   @unique
+  password    String
+  points      Int      @default(0)
+  actif       Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([telephone])
+  @@index([actif])
   @@index([createdAt])
 }

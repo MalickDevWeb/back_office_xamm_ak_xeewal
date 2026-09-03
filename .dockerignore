@@ -1,0 +1,16 @@
+node_modules
+.git
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+
+npm-debug.log
+tests
+*.md
+tmp
+.env
+.env.development
+check.js
+seed-poles.js
+recreate-pole1.js

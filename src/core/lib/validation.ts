@@ -150,6 +150,21 @@ export const PoleSchema = z.object({
   statut: z.enum(['PUBLIE', 'BROUILLON']).optional(),
 });
 export type PoleInput = z.infer<typeof PoleSchema>;
+
+export const AgentTerrainSchema = z.object({
+  prenom: z.string().min(1, 'Prénom requis').max(100),
+  nom: z.string().min(1, 'Nom requis').max(100),
+  telephone: z.string().regex(/^(\+221[\s\-]?)?[7]\d[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/, 'Format de téléphone invalide'),
+  password: z.string().min(6, 'Mot de passe: minimum 6 caractères'),
+});
+export type AgentTerrainInput = z.infer<typeof AgentTerrainSchema>;
+
+export const AgentTerrainLoginSchema = z.object({
+  telephone: z.string().regex(/^(\+221[\s\-]?)?[7]\d[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/, 'Format de téléphone invalide'),
+  password: z.string().min(1, 'Mot de passe requis'),
+});
+export type AgentTerrainLoginInput = z.infer<typeof AgentTerrainLoginSchema>;
+
 export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {
   const result = schema.safeParse(data);
   if (result.success) {
