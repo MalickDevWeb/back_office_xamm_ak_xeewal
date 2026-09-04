@@ -36,10 +36,36 @@ export async function GET(req: Request) {
       where.localite = localite;
     }
 
-    // Filter by statut
     const statut = searchParams.get('statut');
     if (statut) {
       where.statut = statut;
+    }
+
+    const agentTerrainId = searchParams.get('agentTerrainId');
+    if (agentTerrainId) {
+      where.agentTerrainId = agentTerrainId;
+    }
+
+    const centreVote = searchParams.get('centreVote');
+    if (centreVote) {
+      where.centreVote = centreVote;
+    }
+
+    const bureauVote = searchParams.get('bureauVote');
+    if (bureauVote) {
+      where.bureauVote = bureauVote;
+    }
+
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
     }
 
     const adherents = await prisma.adherent.findMany({
@@ -51,7 +77,7 @@ export async function GET(req: Request) {
       success: true,
       data: adherents,
       total: adherents.length,
-      filters: { telephone, nom, quartier, localite, statut }
+      filters: { telephone, nom, quartier, localite, statut, agentTerrainId, centreVote, bureauVote, startDate, endDate }
     });
   } catch (error) {
     console.error('GET /adherents error:', error);

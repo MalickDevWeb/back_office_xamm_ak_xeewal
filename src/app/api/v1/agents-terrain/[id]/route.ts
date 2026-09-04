@@ -30,6 +30,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 // DELETE: Supprimer un agent
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
+    // Dissocier d'abord les adhérents liés à cet agent
+    await prisma.adherent.updateMany({
+      where: { agentTerrainId: params.id },
+      data: { agentTerrainId: null }
+    });
+
     await prisma.agentTerrain.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true, message: 'Agent supprimé' });
   } catch (error: any) {

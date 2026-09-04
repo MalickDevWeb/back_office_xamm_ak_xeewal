@@ -32,10 +32,13 @@ model Adherent {
   carteRectoUrl String?
   carteVersoUrl String?
 
-  poleId          String?
-  pole            Pole?    @relation(fields: [poleId], references: [id])
+  poleId String?
+  pole   Pole?   @relation(fields: [poleId], references: [id])
 
-  agentTerrainId  String?
+  agentTerrainId String?
+
+  centreVote String?
+  bureauVote String?
 
   @@index([telephone])
   @@index([quartier])
@@ -68,8 +71,8 @@ model Besoin {
   categorie   String?
   vocalUrl    String?
 
-  personneId  String?
-  personne    Personne? @relation(fields: [personneId], references: [id])
+  personneId String?
+  personne   Personne? @relation(fields: [personneId], references: [id])
 
   @@index([contact])
   @@index([quartier])
@@ -204,7 +207,7 @@ model Evenement {
   heureDebut  String?
   heureFin    String?
   lieu        String?
-  categorie   String?  // Ex: "Causerie", "Rencontre", "Formation"
+  categorie   String? // Ex: "Causerie", "Rencontre", "Formation"
   imageUrl    String?
   statut      String   @default("A_VENIR") // A_VENIR, EN_COURS, TERMINE, ANNULE
   createdAt   DateTime @default(now())
@@ -233,7 +236,7 @@ model Pole {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  adherents   Adherent[]
+  adherents Adherent[]
 
   @@index([statut])
   @@index([createdAt])
@@ -254,4 +257,27 @@ model AgentTerrain {
   @@index([telephone])
   @@index([actif])
   @@index([createdAt])
+}
+
+model SuperAdminTerrain {
+  id        String   @id @default(uuid())
+  prenom    String
+  nom       String
+  telephone String   @unique
+  password  String
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([telephone])
+  @@index([actif])
+}
+
+model CentreVote {
+  id          String   @id @default(cuid())
+  nom         String   @unique
+  bureaux     Int      @default(1)
+  zone        String?  @default("THIES NORD")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

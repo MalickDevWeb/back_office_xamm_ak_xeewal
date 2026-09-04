@@ -13,7 +13,10 @@ export async function POST(req: Request) {
       return validationErrorResponse(validation.error);
     }
 
-    const telephone = data.telephone.trim();
+    let telephone = data.telephone.trim().replace(/[\s\-]/g, '');
+    if (telephone.startsWith('+221')) {
+      telephone = telephone.substring(4);
+    }
     const agent = await prisma.agentTerrain.findUnique({
       where: { telephone }
     });

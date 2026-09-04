@@ -67,6 +67,8 @@ export async function POST(req: Request) {
       carteVersoUrl: data.carteVersoUrl || null,
       statut: 'NOUVEAU',
       poleId: data.poleId || null,
+      centreVote: data.centreVote || null,
+      bureauVote: data.bureauVote || null,
       agentTerrainId: agent.id,
     };
 
