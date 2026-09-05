@@ -1,5 +1,7 @@
 import { prisma } from '../../../core/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
   const besoinsCount = await prisma.besoin.count();
   const adherentsCount = await prisma.adherent.count();
