@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { verify } from 'jsonwebtoken';
 import { getCorsHeaders } from '../lib/cors';
 
@@ -12,7 +13,7 @@ export async function withAuth(req: NextRequest, handler: Function) {
     }
 
     const token = authHeader.split(' ')[1];
-    const secret = process.env.JWT_SECRET || 'fallback_secret';
+    const secret = envConfig.jwtSecret;
 
     const decoded = verify(token, secret);
 

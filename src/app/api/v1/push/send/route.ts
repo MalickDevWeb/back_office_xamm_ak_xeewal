@@ -1,16 +1,17 @@
 export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { prisma } from '../../../../../core/lib/prisma';
 import { getCorsHeaders } from '../../../../../core/lib/cors';
 import webpush from 'web-push';
 
 // Configurer web-push avec les clés VAPID depuis les variables d'environnement
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+if (envConfig.vapidPublicKey && envConfig.vapidPrivateKey) {
   try {
     webpush.setVapidDetails(
-      process.env.VAPID_SUBJECT || 'mailto:contact@jammakxeewal.sn',
-      process.env.VAPID_PUBLIC_KEY,
-      process.env.VAPID_PRIVATE_KEY
+      envConfig.vapidSubject,
+      envConfig.vapidPublicKey,
+      envConfig.vapidPrivateKey
     );
   } catch (err: any) {
     console.warn('Erreur lors de la configuration de web-push:', err.message);
@@ -38,8 +39,8 @@ export async function POST(req: NextRequest) {
       notification: {
         title: title || 'Mouvement JÀMM AK XÉEWAL',
         body: body || 'Vous avez une nouvelle notification',
-        icon: icon || 'https://www.jammakxeewal.sn/assets/icons/icon-192x192.png',
-        badge: 'https://www.jammakxeewal.sn/assets/icons/icon-72x72.png',
+        icon: icon || `${envConfig.publicSiteUrl}/assets/icons/icon-192x192.png`,
+        badge: `${envConfig.publicSiteUrl}/assets/icons/icon-72x72.png`,
         vibrate: [100, 50, 100],
         data: { url: url || '/' }
       }

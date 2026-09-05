@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 export async function middleware(request: NextRequest) {
   // CORS Handling - dynamic origin based on CORS_ORIGINS env
   const origin = request.headers.get('origin') || '*';
-  const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['*'];
+  const allowedOrigins = envConfig.corsOrigins ? envConfig.corsOrigins.split(',') : ['*'];
 
   const isAllowedOrigin = allowedOrigins.includes('*') || allowedOrigins.includes(origin);
   const corsHeaders = {
@@ -34,7 +35,7 @@ export async function middleware(request: NextRequest) {
 
     try {
       const token = authHeader.split(' ')[1];
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret');
+      const secret = new TextEncoder().encode(envConfig.jwtSecret);
       await jwtVerify(token, secret);
     } catch (error) {
       return NextResponse.json({ success: false, message: 'Token invalide' }, { status: 401, headers: corsHeaders });

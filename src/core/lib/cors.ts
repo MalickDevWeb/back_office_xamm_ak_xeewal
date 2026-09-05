@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 
 export function getCorsHeaders(request: NextRequest): Record<string, string> {
   const origin = request.headers.get('origin') || '*';
-  const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['*'];
+  const allowedOrigins = envConfig.corsOrigins ? envConfig.corsOrigins.split(',') : ['*'];
   const isAllowedOrigin = allowedOrigins.includes('*') || allowedOrigins.includes(origin);
 
   return {

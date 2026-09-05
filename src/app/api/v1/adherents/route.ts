@@ -1,6 +1,7 @@
 export const runtime = 'nodejs';
 import { validateInput, validationErrorResponse, AdherentSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { prisma } from '../../../../core/lib/prisma';
 import { sign } from 'jsonwebtoken';
 
@@ -122,7 +123,7 @@ export async function POST(req: Request) {
     const newAdherent = await prisma.adherent.create({ data: payload });
 
     // Générer un token citoyen permanent (sans expiration)
-    const secret = process.env.JWT_SECRET || 'fallback_secret';
+    const secret = envConfig.jwtSecret;
     const citizenToken = sign(
       { 
         id: newAdherent.id, 

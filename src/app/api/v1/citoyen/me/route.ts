@@ -1,5 +1,6 @@
 export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '../../../../../core/lib/prisma';
 
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
     }
 
     const token = authHeader.split(' ')[1];
-    const secret = process.env.JWT_SECRET || 'fallback_secret';
+    const secret = envConfig.jwtSecret;
     const decoded = verify(token, secret) as any;
 
     if (decoded.role !== 'CITIZEN') {

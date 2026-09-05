@@ -1,16 +1,40 @@
+# Dépendances
 node_modules
+npm-debug.log
+
+# Build Next.js
+.next
+out
+
+# Tests
+coverage
+.pytest_cache
+__tests__
+
+# Git
 .git
 .gitignore
+
+# Documentation
 README.md
+*.md
+
+# Docker
 Dockerfile
+docker-compose.yml
 .dockerignore
 
-npm-debug.log
-tests
-*.md
-tmp
-.env
-.env.development
-check.js
-seed-poles.js
-recreate-pole1.js
+# Fichiers locaux
+.env.local
+.env.*.local
+*.log
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

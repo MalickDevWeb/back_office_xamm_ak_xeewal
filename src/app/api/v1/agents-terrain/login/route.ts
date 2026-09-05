@@ -1,5 +1,6 @@
 export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { prisma } from '../../../../../core/lib/prisma';
 import { validateInput, validationErrorResponse, AgentTerrainLoginSchema } from '../../../../../core/lib/validation';
 import bcrypt from 'bcryptjs';
@@ -43,11 +44,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const secret = process.env.JWT_SECRET || 'fallback_secret';
+    const secret = envConfig.jwtSecret;
     const token = sign(
       { id: agent.id, role: 'AGENT_TERRAIN' },
       secret,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as SignOptions
+      { expiresIn: envConfig.jwtExpiresIn } as SignOptions
     );
 
     return NextResponse.json({

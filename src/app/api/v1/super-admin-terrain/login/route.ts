@@ -1,5 +1,6 @@
 export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { prisma } from '../../../../../core/lib/prisma';
 import { validateInput, validationErrorResponse, SuperAdminTerrainLoginSchema } from '../../../../../core/lib/validation';
 import bcrypt from 'bcryptjs';
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
 
     const token = jwt.sign(
       { id: admin.id, role: 'SUPER_ADMIN_TERRAIN' },
-      process.env.JWT_SECRET || 'fallback_secret',
+      envConfig.jwtSecret,
       { expiresIn: '30d' }
     );
 

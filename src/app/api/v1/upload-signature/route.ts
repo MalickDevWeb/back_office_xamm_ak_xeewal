@@ -1,12 +1,13 @@
 export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { v2 as cloudinary } from 'cloudinary';
 import { getCorsHeaders } from '../../../../core/lib/cors';
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: envConfig.cloudinaryCloudName,
+  api_key: envConfig.cloudinaryApiKey,
+  api_secret: envConfig.cloudinaryApiSecret,
 });
 
 export async function OPTIONS(req: NextRequest) {
@@ -27,15 +28,15 @@ export async function POST(req: NextRequest) {
 
     const signature = cloudinary.utils.api_sign_request(
       paramsToSign,
-      process.env.CLOUDINARY_API_SECRET!
+      envConfig.cloudinaryApiSecret!
     );
 
     return NextResponse.json({
       success: true,
       signature,
       timestamp,
-      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-      apiKey: process.env.CLOUDINARY_API_KEY,
+      cloudName: envConfig.cloudinaryCloudName,
+      apiKey: envConfig.cloudinaryApiKey,
       folder: folder || 'public',
       resourceType: resource_type || 'auto',
     }, { headers: corsHeaders });

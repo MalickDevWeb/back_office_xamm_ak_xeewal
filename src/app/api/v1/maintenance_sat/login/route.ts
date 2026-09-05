@@ -1,5 +1,6 @@
 export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { sign } from 'jsonwebtoken';
 import { prisma } from '../../../../../core/lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
     }
 
     // Sign a specific super admin token
-    const secret = process.env.JWT_SECRET || 'fallback_secret';
+    const secret = envConfig.jwtSecret;
     const token = sign({ id: user.id, role: 'SUPER_ADMIN' }, secret, { expiresIn: '1d' });
 
     return NextResponse.json({ success: true, token });

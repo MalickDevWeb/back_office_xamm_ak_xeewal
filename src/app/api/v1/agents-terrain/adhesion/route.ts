@@ -1,5 +1,6 @@
 export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { prisma } from '../../../../../core/lib/prisma';
 import { validateInput, validationErrorResponse, AdherentSchema } from '../../../../../core/lib/validation';
 import { verify } from 'jsonwebtoken';
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
     }
 
     const token = authHeader.split(' ')[1];
-    const secret = process.env.JWT_SECRET || 'fallback_secret';
+    const secret = envConfig.jwtSecret;
     
     let decoded: any;
     try {

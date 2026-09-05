@@ -2,6 +2,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 import { NextResponse } from 'next/server';
+import { config as envConfig } from '@/core/lib/env';
 import { prisma } from '../../../../../core/lib/prisma';
 import { verify } from 'jsonwebtoken';
 
@@ -12,7 +13,7 @@ function requireSuperAdmin(req: Request) {
     throw new Error('Unauthorized');
   }
   const token = authHeader.split(' ')[1];
-  const secret = process.env.JWT_SECRET || 'fallback_secret';
+  const secret = envConfig.jwtSecret;
   try {
     const decoded = verify(token, secret) as any;
     console.log('decoded:', decoded);

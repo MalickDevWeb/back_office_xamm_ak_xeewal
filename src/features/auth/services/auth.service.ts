@@ -1,5 +1,6 @@
 import { prisma } from '../../../core/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { config as envConfig } from '@/core/lib/env';
 import { sign, SignOptions } from 'jsonwebtoken';
 
 export class AuthService {
@@ -14,11 +15,11 @@ export class AuthService {
       throw new Error('Identifiants invalides');
     }
 
-    const secret = process.env.JWT_SECRET || 'fallback_secret';
+    const secret = envConfig.jwtSecret;
     const token = sign(
       { id: user.id, role: user.role },
       secret,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '1d' } as SignOptions
+      { expiresIn: envConfig.jwtExpiresIn } as SignOptions
     );
 
     return {
