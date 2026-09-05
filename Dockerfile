@@ -29,8 +29,10 @@ COPY . .
 # Générer Prisma
 RUN npx prisma generate
 
-# Builder l'application Next.js
-RUN npm run build
+# Builder l'application Next.js avec placeholders de build (les vraies valeurs seront injectees au runtime)
+RUN DATABASE_URL="postgresql://build:build@localhost:5432/build_db" \
+    JWT_SECRET="build-secret" \
+    npm run build
 
 # Étape de production
 FROM base AS runner

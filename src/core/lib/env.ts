@@ -5,6 +5,11 @@
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value || value.trim() === '') {
+    // Évite de faire échouer la compilation statique (Docker build / CI) quand les secrets runtime ne sont pas encore injectés
+    if (process.env.npm_lifecycle_event === 'build' || process.env.NEXT_PHASE === 'phase-production-build') {
+      if (name === 'DATABASE_URL') return 'postgresql://build:build@localhost:5432/build_db';
+      return 'build-placeholder';
+    }
     throw new Error(`Variable d'environnement manquante : ${name}`);
   }
   return value.trim();
