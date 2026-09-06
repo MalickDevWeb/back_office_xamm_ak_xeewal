@@ -7,7 +7,19 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await prisma.adminUser.findUnique({
       where: { email },
-      include: { profile: true },
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: { permission: true }
+                }
+              }
+            }
+          }
+        }
+      },
     });
     if (!user) {
       throw new Error('Identifiants invalides');
@@ -24,10 +36,12 @@ export class AuthService {
 
     // Calcul des permissions effectives
     let permissions: string[] = [];
-    if (user.role === 'SUPER_ADMIN' || (user.role === 'ADMIN' && (!user.profile || user.profile.isSystem))) {
+    const primaryRole = user.userRoles[0]?.role;
+
+    if (user.role === 'SUPER_ADMIN' || (user.role === 'ADMIN' && primaryRole?.isSystem)) {
       permissions = ['*'];
-    } else if (user.profile && Array.isArray(user.profile.permissions)) {
-      permissions = user.profile.permissions;
+    } else if (primaryRole && Array.isArray(primaryRole.rolePermissions)) {
+      permissions = primaryRole.rolePermissions.map(rp => rp.permission.slug);
     }
 
     const secret = envConfig.jwtSecret;
@@ -35,7 +49,7 @@ export class AuthService {
       {
         id: user.id,
         role: user.role,
-        profileId: user.profileId,
+        profileId: primaryRole?.id || null,
         permissions,
       },
       secret,
@@ -50,13 +64,13 @@ export class AuthService {
         telephone: user.telephone,
         role: user.role,
         actif: user.actif,
-        profileId: user.profileId,
-        profile: user.profile
+        profileId: primaryRole?.id || null,
+        profile: primaryRole
           ? {
-              id: user.profile.id,
-              name: user.profile.name,
-              isSystem: user.profile.isSystem,
-              permissions: user.profile.permissions,
+              id: primaryRole.id,
+              name: primaryRole.name,
+              isSystem: primaryRole.isSystem,
+              permissions: primaryRole.rolePermissions.map(rp => rp.permission.slug),
             }
           : null,
         permissions,

@@ -8,32 +8,33 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId') || 'DEFAULT_ORG';
 
-    const modules = await prisma.module.findMany({
+    // Récupérer les modules activés pour cette organisation
+    const orgModules = await prisma.organizationModule.findMany({
+      where: { organizationId, enabled: true },
       include: {
-        subModules: true,
-        permissions: true,
-        organizationModules: {
-          where: { organizationId }
+        module: {
+          include: {
+            permissions: true
+          }
         }
       }
     });
 
-    const formattedModules = modules.map(m => {
-      const orgModule = m.organizationModules[0];
-      return {
-        id: m.id,
-        name: m.name,
-        slug: m.slug,
-        description: m.description,
-        icon: m.icon,
-        isSystem: m.isSystem,
-        enabled: orgModule ? orgModule.enabled : false,
-        subModules: m.subModules,
-        permissions: m.permissions
-      };
+    const flatPermissions: any[] = [];
+    
+    orgModules.forEach(om => {
+      om.module.permissions.forEach(p => {
+        flatPermissions.push({
+          id: p.slug, // On utilise le slug comme ID dans le frontend (ex: 'finance.expenses.read')
+          label: p.description || p.slug,
+          description: p.description || p.slug,
+          icon: om.module.icon || 'fa-solid fa-cube',
+          category: om.module.name
+        });
+      });
     });
 
-    return NextResponse.json({ success: true, data: formattedModules });
+    return NextResponse.json({ success: true, data: flatPermissions });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }

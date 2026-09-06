@@ -23,7 +23,7 @@ export class AdminUserService {
    * Récupère tous les utilisateurs membres du back-office avec leur profil
    */
   static async getAllUsers() {
-    return prisma.adminUser.findMany({
+    const users = await prisma.adminUser.findMany({
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -35,15 +35,34 @@ export class AdminUserService {
         profileId: true,
         createdAt: true,
         updatedAt: true,
-        profile: {
-          select: {
-            id: true,
-            name: true,
-            permissions: true,
-            isSystem: true,
-          },
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true
+                  }
+                }
+              }
+            }
+          }
         },
       },
+    });
+
+    return users.map(user => {
+      const primaryRole = user.userRoles[0]?.role;
+      return {
+        ...user,
+        profileId: primaryRole?.id || null,
+        profile: primaryRole ? {
+          id: primaryRole.id,
+          name: primaryRole.name,
+          isSystem: primaryRole.isSystem,
+          permissions: primaryRole.rolePermissions.map(rp => rp.permission.slug),
+        } : null,
+      };
     });
   }
 
@@ -63,13 +82,18 @@ export class AdminUserService {
         profileId: true,
         createdAt: true,
         updatedAt: true,
-        profile: {
-          select: {
-            id: true,
-            name: true,
-            permissions: true,
-            isSystem: true,
-          },
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true
+                  }
+                }
+              }
+            }
+          }
         },
       },
     });
@@ -78,7 +102,17 @@ export class AdminUserService {
       throw new Error('Utilisateur introuvable');
     }
 
-    return user;
+    const primaryRole = user.userRoles[0]?.role;
+    return {
+      ...user,
+      profileId: primaryRole?.id || null,
+      profile: primaryRole ? {
+        id: primaryRole.id,
+        name: primaryRole.name,
+        isSystem: primaryRole.isSystem,
+        permissions: primaryRole.rolePermissions.map(rp => rp.permission.slug),
+      } : null,
+    };
   }
 
   /**
@@ -105,9 +139,8 @@ export class AdminUserService {
       throw new Error(`Un compte avec l'adresse "${email}" existe déjà`);
     }
 
-    // Vérifier l'existence du profil s'il est spécifié
     if (data.profileId) {
-      const profile = await prisma.profile.findUnique({ where: { id: data.profileId } });
+      const profile = await prisma.role.findUnique({ where: { id: data.profileId } });
       if (!profile) {
         throw new Error('Le profil sélectionné est introuvable');
       }
@@ -121,9 +154,13 @@ export class AdminUserService {
         email,
         password: hashedPassword,
         telephone: data.telephone?.trim() || null,
-        profileId: data.profileId || null,
         role: 'ADMIN',
         actif: true,
+        userRoles: data.profileId ? {
+          create: {
+            roleId: data.profileId
+          }
+        } : undefined
       },
       select: {
         id: true,
@@ -132,19 +169,34 @@ export class AdminUserService {
         telephone: true,
         role: true,
         actif: true,
-        profileId: true,
         createdAt: true,
-        profile: {
-          select: {
-            id: true,
-            name: true,
-            permissions: true,
-          },
-        },
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true
+                  }
+                }
+              }
+            }
+          }
+        }
       },
     });
 
-    return user;
+    const primaryRole = user.userRoles[0]?.role;
+    return {
+      ...user,
+      profileId: primaryRole?.id || null,
+      profile: primaryRole ? {
+        id: primaryRole.id,
+        name: primaryRole.name,
+        permissions: primaryRole.rolePermissions.map(rp => rp.permission.slug),
+        isSystem: primaryRole.isSystem,
+      } : null,
+    };
   }
 
   /**
@@ -191,11 +243,16 @@ export class AdminUserService {
 
     if (data.profileId !== undefined) {
       if (data.profileId) {
-        const profile = await prisma.profile.findUnique({ where: { id: data.profileId } });
+        const profile = await prisma.role.findUnique({ where: { id: data.profileId } });
         if (!profile) throw new Error('Profil introuvable');
-        updateData.profileId = data.profileId;
+
+        // Mettre à jour les userRoles
+        await prisma.userRole.deleteMany({ where: { userId: id } });
+        await prisma.userRole.create({
+          data: { userId: id, roleId: data.profileId }
+        });
       } else {
-        updateData.profileId = null;
+        await prisma.userRole.deleteMany({ where: { userId: id } });
       }
     }
 
@@ -203,7 +260,7 @@ export class AdminUserService {
       updateData.actif = Boolean(data.actif);
     }
 
-    return prisma.adminUser.update({
+    const updatedUser = await prisma.adminUser.update({
       where: { id },
       data: updateData,
       select: {
@@ -213,17 +270,34 @@ export class AdminUserService {
         telephone: true,
         role: true,
         actif: true,
-        profileId: true,
         updatedAt: true,
-        profile: {
-          select: {
-            id: true,
-            name: true,
-            permissions: true,
-          },
-        },
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true
+                  }
+                }
+              }
+            }
+          }
+        }
       },
     });
+
+    const primaryRole = updatedUser.userRoles[0]?.role;
+    return {
+      ...updatedUser,
+      profileId: primaryRole?.id || null,
+      profile: primaryRole ? {
+        id: primaryRole.id,
+        name: primaryRole.name,
+        permissions: primaryRole.rolePermissions.map(rp => rp.permission.slug),
+        isSystem: primaryRole.isSystem,
+      } : null,
+    };
   }
 
   /**
@@ -255,20 +329,21 @@ export class AdminUserService {
 
     const user = await prisma.adminUser.findUnique({
       where: { id },
-      include: { profile: true },
+      include: { userRoles: { include: { role: true } } },
     });
 
     if (!user) throw new Error('Utilisateur introuvable');
 
     // Vérifier qu'on ne supprime pas le tout dernier super administrateur
-    if (user.profile?.isSystem || user.role === 'SUPER_ADMIN') {
+    const isSuperAdminRole = user.userRoles.some(ur => ur.role.isSystem) || user.role === 'SUPER_ADMIN';
+    if (isSuperAdminRole) {
       const remainingSuperAdmins = await prisma.adminUser.count({
         where: {
           id: { not: id },
           actif: true,
           OR: [
             { role: 'SUPER_ADMIN' },
-            { profile: { isSystem: true } },
+            { userRoles: { some: { role: { isSystem: true } } } },
           ],
         },
       });
