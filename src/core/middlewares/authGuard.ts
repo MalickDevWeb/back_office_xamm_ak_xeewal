@@ -16,7 +16,7 @@ export async function withAuth(req: NextRequest, handler: Function) {
     const secret = envConfig.jwtSecret;
 
     // Vérifier si le token est révoqué (déconnexion)
-    const { RedisService } = require('@/core/services/redis.service');
+    const { RedisService } = await import('@/core/services/redis.service');
     const isBlacklisted = await RedisService.get(`blacklist:token:${token}`);
     if (isBlacklisted) {
       return NextResponse.json({ success: false, message: 'Token révoqué' }, { status: 401, headers: corsHeaders });
