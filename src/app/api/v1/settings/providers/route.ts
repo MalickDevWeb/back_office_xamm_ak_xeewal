@@ -1,19 +1,13 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/core/lib/prisma';
-import { CryptoUtil } from '@/core/utils/crypto.util';
+import { PaymentProviderAdminService } from '@/features/finance/services/payment-provider-admin.service';
 
-// GET: Récupère la liste des providers configurés (sans les clés sensibles pour des raisons de sécurité, ou juste un statut)
-export async function GET() {
+const DEFAULT_ORG_ID = 'DEFAULT_ORG';
+
+// GET: Récupère la liste des providers configurés (sans les clés sensibles pour des raisons de sécurité)
+export async function GET(request: Request) {
   try {
-    const providers = await (prisma as any).providerConfiguration.findMany({
-      select: {
-        id: true,
-        provider: true,
-        isActive: true,
-        updatedAt: true
-      }
-    });
-    
+    const organizationId = request.headers.get('x-organization-id') || DEFAULT_ORG_ID;
+    const providers = await PaymentProviderAdminService.listProviders(organizationId);
     return NextResponse.json({ success: true, data: providers });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
@@ -24,43 +18,29 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { provider, isActive, config, updatedBy } = body;
+    const organizationId = request.headers.get('x-organization-id') || DEFAULT_ORG_ID;
+    const { provider, credentials, config, webhookSecret, mode } = body;
 
-    if (!provider || !config) {
-      return NextResponse.json({ success: false, message: 'provider et config sont requis' }, { status: 400 });
+    if (!provider) {
+      return NextResponse.json({ success: false, message: 'Le provider est requis' }, { status: 400 });
     }
 
-    // Chiffrement fort des clés d'API (AES-256-GCM) avant insertion en base
-    const encryptedConfig = CryptoUtil.encryptConfig(config);
-
-    const upserted = await (prisma as any).providerConfiguration.upsert({
-      where: { provider },
-      update: {
-        isActive: isActive !== undefined ? isActive : true,
-        config: encryptedConfig,
-        updatedBy: updatedBy || 'ADMIN'
-      },
-      create: {
-        provider,
-        isActive: isActive !== undefined ? isActive : true,
-        config: encryptedConfig,
-        updatedBy: updatedBy || 'ADMIN'
-      },
-      select: {
-        id: true,
-        provider: true,
-        isActive: true,
-        updatedAt: true
-      }
-    });
+    const creds = credentials || config;
+    const updated = await PaymentProviderAdminService.configureProvider(
+      organizationId,
+      provider,
+      creds,
+      webhookSecret,
+      mode
+    );
 
     return NextResponse.json({ 
       success: true, 
       message: 'Configuration sauvegardée avec succès',
-      data: upserted 
+      data: updated 
     });
   } catch (error: any) {
     console.error('Provider settings error:', error);
-    return NextResponse.json({ success: false, message: 'Erreur de sauvegarde' }, { status: 500 });
+    return NextResponse.json({ success: false, message: error?.message || 'Erreur de sauvegarde' }, { status: 500 });
   }
 }

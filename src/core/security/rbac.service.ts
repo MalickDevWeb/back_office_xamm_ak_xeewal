@@ -11,18 +11,27 @@ export class RbacService {
    */
   static async can(userId: string, permissionSlug: string, organizationId: string = 'DEFAULT_ORG'): Promise<boolean> {
     try {
-      // 0. Cas spécial : vérifier si l'utilisateur a un rôle "Super Admin"
-      const isSuperAdmin = await prisma.userRole.count({
-        where: {
-          userId,
-          role: {
-            isSystem: true,
-            name: 'Super Admin'
+      // 0. Cas spécial : vérifier si l'utilisateur est Super Admin
+      const adminUser = await prisma.adminUser.findUnique({
+        where: { id: userId },
+        include: {
+          profile: true,
+          userRoles: {
+            include: { role: true }
           }
         }
       });
 
-      if (isSuperAdmin > 0) {
+      if (!adminUser || !adminUser.actif) {
+        return false;
+      }
+
+      if (
+        adminUser.role === 'SUPER_ADMIN' ||
+        adminUser.profile?.isSystem ||
+        adminUser.profile?.name === 'Super Admin' ||
+        adminUser.userRoles.some(ur => ur.role.isSystem || ur.role.name === 'Super Admin')
+      ) {
         return true;
       }
 

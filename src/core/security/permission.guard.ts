@@ -14,15 +14,28 @@ export function requirePermission(permission: string, handler: Function) {
       if (!userId) {
         const authHeader = request.headers.get('authorization');
         if (authHeader && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.split(' ')[1];
           try {
-            const token = authHeader.split(' ')[1];
             const { config: envConfig } = await import('@/core/lib/env');
-            const secret = new TextEncoder().encode(envConfig.jwtSecret);
-            const { jwtVerify } = await import('jose');
-            const { payload } = await jwtVerify(token, secret);
-            userId = (payload.id || payload.userId || payload.sub) as string;
-          } catch (e) {
-            console.error('[PermissionGuard] JWT Verification Error:', e);
+            const jwt = await import('jsonwebtoken');
+            const decoded = jwt.verify(token, envConfig.jwtSecret) as any;
+            userId = decoded.id || decoded.userId || decoded.sub;
+            if (decoded.role === 'SUPER_ADMIN' || decoded.permissions?.includes('*')) {
+              return handler(request, ...args);
+            }
+          } catch {
+            try {
+              const { config: envConfig } = await import('@/core/lib/env');
+              const secret = new TextEncoder().encode(envConfig.jwtSecret);
+              const { jwtVerify } = await import('jose');
+              const { payload } = await jwtVerify(token, secret);
+              userId = (payload.id || payload.userId || payload.sub) as string;
+              if (payload.role === 'SUPER_ADMIN' || (payload.permissions as string[])?.includes('*')) {
+                return handler(request, ...args);
+              }
+            } catch (e: any) {
+              console.error('[PermissionGuard] JWT Verification Error:', e?.message || e);
+            }
           }
         }
       }
