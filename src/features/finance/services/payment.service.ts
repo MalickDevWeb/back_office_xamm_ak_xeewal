@@ -1,4 +1,5 @@
-import { prisma } from '../../../lib/prisma';
+import { prisma } from '../../../core/lib/prisma';
+import { Prisma, ContributionPayment } from '@prisma/client';
 import { PaymentProviderFactory } from '../providers/payment-provider.factory';
 import { FinancialMovementService } from './financial-movement.service';
 
@@ -69,20 +70,28 @@ export class PaymentService {
    * Confirme une transaction (ex: suite à un webhook ou validation manuelle)
    */
   static async confirmPayment(transactionId: string, accountId: string, confirmedBy?: string) {
-    return await prisma.$transaction(async (tx) => {
-      const transaction = await tx.paymentTransaction.findUnique({
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // 1. Mise à jour atomique conditionnelle — évite la race condition.
+      // Un seul appel concurrent peut réussir (count === 1) ; tous les autres
+      // obtiendront count === 0 et lanceront une erreur.
+      const updateResult = await tx.paymentTransaction.updateMany({
+        where: { id: transactionId, status: { not: 'SUCCESS' } },
+        data: { status: 'SUCCESS' }
+      });
+
+      if (updateResult.count === 0) {
+        throw new Error("Transaction introuvable ou déjà confirmée par un autre processus.");
+      }
+
+      // Charger la transaction mise à jour avec ses relations
+      const updatedTx = await tx.paymentTransaction.findUnique({
         where: { id: transactionId },
         include: { contributionPayments: true }
       });
 
-      if (!transaction) throw new Error("Transaction non trouvée");
-      if (transaction.status === 'SUCCESS') throw new Error("Transaction déjà confirmée");
+      if (!updatedTx) throw new Error("Transaction non trouvée après mise à jour.");
 
-      // 1. Mettre à jour la transaction
-      const updatedTx = await tx.paymentTransaction.update({
-        where: { id: transactionId },
-        data: { status: 'SUCCESS' }
-      });
+      const transaction = updatedTx;
 
       // 2. Mettre à jour le paiement de cotisation lié
       let updatedPayment = null;
@@ -100,8 +109,8 @@ export class PaymentService {
         
         if (contrib) {
           const totalPaid = contrib.payments
-            .filter(p => p.status === 'CONFIRMED' || p.id === updatedPayment!.id)
-            .reduce((sum, p) => sum + p.amount, 0);
+            .filter((p: ContributionPayment) => p.status === 'CONFIRMED' || p.id === updatedPayment!.id)
+            .reduce((sum: number, p: ContributionPayment) => sum + p.amount, 0);
             
           const newStatus = totalPaid >= contrib.expectedAmount ? 'PAYEE' : 'PARTIELLEMENT_PAYEE';
           
@@ -153,7 +162,7 @@ export class PaymentService {
    * Rejeter un paiement manuel
    */
   static async rejectManualPayment(transactionId: string, rejectedReason: string, rejectedBy: string) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const transaction = await tx.paymentTransaction.update({
         where: { id: transactionId },
         data: { status: 'FAILED', failureMessage: rejectedReason },

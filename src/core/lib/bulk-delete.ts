@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from './prisma';
 import { getCorsHeaders } from './cors';
-import { AuditService } from '@/features/financial/services/audit.service';
+import { AuditService } from '@/features/finance/services/audit.service';
 
 export type PrismaModelName =
   | 'adherent' | 'besoin' | 'idee' | 'message' | 'evenement' | 'activite'

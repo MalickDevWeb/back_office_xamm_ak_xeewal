@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import { GroupService } from '@/features/groups/services/group.service';
+import { requirePermission } from '../../../../core/security/permission.guard';
 
 const groupService = new GroupService();
 const DEFAULT_ORG_ID = 'DEFAULT_ORG'; // Simulation du multi-tenant pour le MVP
 
-export async function GET(request: Request) {
+async function getGroupsHandler(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || undefined;
-    const organizationId = searchParams.get('organizationId') || DEFAULT_ORG_ID;
+    const organizationId = request.headers.get('x-organization-id') || DEFAULT_ORG_ID;
 
     const groups = await groupService.getGroups(organizationId, status);
     
@@ -24,10 +25,10 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+async function createGroupHandler(request: Request) {
   try {
     const body = await request.json();
-    const organizationId = body.organizationId || DEFAULT_ORG_ID;
+    const organizationId = request.headers.get('x-organization-id') || DEFAULT_ORG_ID;
 
     if (!body.name || !body.type) {
       return NextResponse.json(
@@ -53,3 +54,6 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export const GET = requirePermission('groups.read', getGroupsHandler);
+export const POST = requirePermission('groups.write', createGroupHandler);

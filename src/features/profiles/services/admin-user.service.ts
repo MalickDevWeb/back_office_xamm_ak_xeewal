@@ -24,6 +24,15 @@ export class AdminUserService {
    */
   static async getAllUsers() {
     const users = await prisma.adminUser.findMany({
+      where: {
+        // Exclure les super admins et les profils système (maintenance)
+        role: { not: 'SUPER_ADMIN' },
+        userRoles: {
+          none: {
+            role: { isSystem: true }
+          }
+        }
+      },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,

@@ -137,6 +137,7 @@ model Commission {
 model Sondage {
   id           String          @id @default(uuid())
   question     String
+  imageUrl     String?
   participants Int             @default(0)
   statut       String          @default("ACTIF")
   createdAt    DateTime        @default(now())

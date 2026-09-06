@@ -1,67 +1,59 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '../../../../../lib/prisma';
 import { requirePermission } from '../../../../../core/security/permission.guard';
-import { encrypt } from '../../../../../core/utils/crypto.util';
+import { PaymentProviderAdminService } from '../../../../../features/finance/services/payment-provider-admin.service';
+import { CryptoUtil } from '../../../../../core/utils/crypto.util';
+import { prisma } from '../../../../../core/lib/prisma';
 
-// Liste des providers
-async function getProvidersHandler(request: Request) {
-  // En production, récupérer l'orgId de l'utilisateur
-  const organizationId = request.headers.get('x-organization-id') || 'DEFAULT_ORG';
-
-  const configs = await prisma.paymentProviderConfig.findMany({
-    where: { organizationId },
-    select: {
-      id: true,
-      provider: true,
-      enabled: true,
-      mode: true,
-      lastTestedAt: true,
-      lastTestStatus: true,
-      updatedAt: true
-    }
-  });
-
-  return NextResponse.json({ success: true, data: configs });
+/**
+ * GET /api/v1/admin/payment-providers
+ * Liste les providers configurés pour l'organisation.
+ * Ne retourne JAMAIS les credentials.
+ */
+async function listProvidersHandler(request: Request) {
+  try {
+    const organizationId = request.headers.get('x-organization-id') || 'DEFAULT_ORG';
+    const data = await PaymentProviderAdminService.listProviders(organizationId);
+    return NextResponse.json({ success: true, data });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
 }
 
-// Configuration d'un provider
+/**
+ * POST /api/v1/admin/payment-providers
+ * Configure les credentials d'un provider.
+ * Body: { provider, credentials: { api_key: '...' }, webhookSecret: '...', mode: 'SANDBOX'|'PRODUCTION' }
+ */
 async function configureProviderHandler(request: Request) {
-  const organizationId = request.headers.get('x-organization-id') || 'DEFAULT_ORG';
-  const body = await request.json();
-  const { provider, credentials, webhookSecret } = body;
+  try {
+    const organizationId = request.headers.get('x-organization-id') || 'DEFAULT_ORG';
+    const userId = request.headers.get('x-user-id') || 'UNKNOWN';
+    const body = await request.json();
+    const { provider, credentials, webhookSecret, mode } = body;
 
-  const credentialsEncrypted = credentials ? encrypt(JSON.stringify(credentials)) : undefined;
-  const webhookSecretEncrypted = webhookSecret ? encrypt(webhookSecret) : undefined;
+    if (!provider) {
+      return NextResponse.json({ success: false, message: 'provider est requis' }, { status: 400 });
+    }
 
-  const config = await prisma.paymentProviderConfig.upsert({
-    where: { organizationId_provider: { organizationId, provider } },
-    update: {
-      credentialsEncrypted: credentialsEncrypted ?? undefined,
-      webhookSecretEncrypted: webhookSecretEncrypted ?? undefined,
-      mode: body.mode || undefined,
-      enabled: body.enabled !== undefined ? body.enabled : undefined,
-    },
-    create: {
+    const data = await PaymentProviderAdminService.configureProvider(
       organizationId,
       provider,
-      credentialsEncrypted,
-      webhookSecretEncrypted,
-      mode: body.mode || 'SANDBOX',
-      enabled: body.enabled || false,
-    }
-  });
+      credentials,
+      webhookSecret,
+      mode
+    );
 
-  return NextResponse.json({ 
-    success: true, 
-    message: 'Configuration sauvegardée',
-    data: {
-      provider: config.provider,
-      enabled: config.enabled,
-      mode: config.mode
-    }
-  });
+    // Surcharger l'actorId dans l'audit avec le vrai userId
+    await prisma.auditLog.updateMany({
+      where: { action: 'CREDENTIALS_UPDATED', actorId: 'SYSTEM', entityType: 'PaymentProviderConfig' },
+      data: { actorId: userId }
+    });
+
+    return NextResponse.json({ success: true, message: 'Configuration sauvegardée', data });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 400 });
+  }
 }
 
-// Protéger les routes via requirePermission
-export const GET = requirePermission('finance.providers.read', getProvidersHandler);
+export const GET = requirePermission('finance.providers.read', listProvidersHandler);
 export const POST = requirePermission('finance.providers.write', configureProviderHandler);

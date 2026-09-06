@@ -66,6 +66,46 @@ async function main() {
       icon: 'fa-gear',
       isSystem: true,
       permissions: ['settings.read', 'settings.update', 'rbac.manage']
+    },
+    {
+      name: 'Groupes',
+      slug: 'groups',
+      description: 'Gestion des groupes et segments',
+      icon: 'fa-users-rectangle',
+      isSystem: false,
+      permissions: ['groups.read', 'groups.create', 'groups.update', 'groups.delete', 'groups.assign', 'groups.remove']
+    },
+    {
+      name: 'Activités',
+      slug: 'activities',
+      description: 'Gestion des activités',
+      icon: 'fa-person-running',
+      isSystem: false,
+      permissions: ['activities.read', 'activities.create', 'activities.update', 'activities.delete', 'activities.publish', 'activities.assign']
+    },
+    {
+      name: 'Événements',
+      slug: 'events',
+      description: 'Gestion des événements',
+      icon: 'fa-calendar',
+      isSystem: false,
+      permissions: ['events.read', 'events.create', 'events.update', 'events.delete', 'events.publish', 'events.assign']
+    },
+    {
+      name: 'Pôles',
+      slug: 'poles',
+      description: 'Gestion des pôles et directions',
+      icon: 'fa-sitemap',
+      isSystem: false,
+      permissions: ['poles.read', 'poles.create', 'poles.update', 'poles.delete', 'poles.assign', 'poles.remove']
+    },
+    {
+      name: 'Contenus',
+      slug: 'content',
+      description: 'Gestion éditoriale',
+      icon: 'fa-newspaper',
+      isSystem: false,
+      permissions: ['content.read', 'content.create', 'content.update', 'content.delete', 'content.publish']
     }
   ];
 

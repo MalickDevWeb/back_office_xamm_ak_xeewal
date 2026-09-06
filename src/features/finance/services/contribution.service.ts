@@ -1,4 +1,5 @@
-import { prisma } from '../../../lib/prisma';
+import { prisma } from '../../../core/lib/prisma';
+import { ContributionPayment } from '@prisma/client';
 
 export class ContributionService {
   
@@ -40,8 +41,8 @@ export class ContributionService {
     if (!contribution) throw new Error("Cotisation non trouvée");
 
     const totalPaid = contribution.payments
-      .filter(p => p.status === 'CONFIRMED')
-      .reduce((sum, p) => sum + p.amount, 0);
+      .filter((p: ContributionPayment) => p.status === 'CONFIRMED')
+      .reduce((sum: number, p: ContributionPayment) => sum + p.amount, 0);
 
     return {
       ...contribution,

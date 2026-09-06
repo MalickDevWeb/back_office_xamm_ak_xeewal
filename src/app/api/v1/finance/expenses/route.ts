@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { ExpenseService } from '../../../../../../features/finance/services/expense.service';
-import { requirePermission } from '../../../../../../core/security/permission.guard';
+import { ExpenseService } from '@/features/finance/services/expense.service';
+import { requirePermission } from '@/core/security/permission.guard';
 
 async function createExpenseHandler(request: Request) {
   const organizationId = request.headers.get('x-organization-id') || 'DEFAULT_ORG';
@@ -10,6 +10,7 @@ async function createExpenseHandler(request: Request) {
   try {
     const expense = await ExpenseService.createExpense({
       ...body,
+      reason: body.reason || body.description || '',
       organizationId,
       createdBy: userId
     });

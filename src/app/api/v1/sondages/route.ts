@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     const newSondage = await prisma.sondage.create({
       data: {
         question: data.question,
+        imageUrl: data.imageUrl || null,
         options: {
           create: data.options.map((opt: string) => ({ texte: opt }))
         }

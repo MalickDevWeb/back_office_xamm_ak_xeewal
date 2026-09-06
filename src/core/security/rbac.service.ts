@@ -11,6 +11,21 @@ export class RbacService {
    */
   static async can(userId: string, permissionSlug: string, organizationId: string = 'DEFAULT_ORG'): Promise<boolean> {
     try {
+      // 0. Cas spécial : vérifier si l'utilisateur a un rôle "Super Admin"
+      const isSuperAdmin = await prisma.userRole.count({
+        where: {
+          userId,
+          role: {
+            isSystem: true,
+            name: 'Super Admin'
+          }
+        }
+      });
+
+      if (isSuperAdmin > 0) {
+        return true;
+      }
+
       // 1. On cherche la permission en base
       const permission = await prisma.permission.findUnique({
         where: { slug: permissionSlug },
@@ -56,21 +71,6 @@ export class RbacService {
 
       // Si count > 0, l'utilisateur a au moins un rôle avec cette permission
       if (userRolesCount > 0) {
-        return true;
-      }
-
-      // 4. Cas spécial : vérifier si l'utilisateur a un rôle "Super Admin"
-      const isSuperAdmin = await prisma.userRole.count({
-        where: {
-          userId,
-          role: {
-            isSystem: true,
-            name: 'Super Admin'
-          }
-        }
-      });
-
-      if (isSuperAdmin > 0) {
         return true;
       }
 

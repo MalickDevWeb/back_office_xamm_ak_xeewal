@@ -8,10 +8,24 @@ import { RbacService } from './rbac.service';
 export function requirePermission(permission: string, handler: Function) {
   return async (request: Request, ...args: any[]) => {
     try {
-      // 1. Récupérer l'utilisateur courant (via un token JWT ou les headers)
-      // Ceci est un exemple, l'implémentation dépend de votre middleware d'auth existant.
-      const userId = request.headers.get('x-user-id');
+      let userId = request.headers.get('x-user-id');
       const organizationId = request.headers.get('x-organization-id') || 'DEFAULT_ORG';
+
+      if (!userId) {
+        const authHeader = request.headers.get('authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          try {
+            const token = authHeader.split(' ')[1];
+            const { config: envConfig } = await import('@/core/lib/env');
+            const secret = new TextEncoder().encode(envConfig.jwtSecret);
+            const { jwtVerify } = await import('jose');
+            const { payload } = await jwtVerify(token, secret);
+            userId = (payload.id || payload.userId || payload.sub) as string;
+          } catch (e) {
+            console.error('[PermissionGuard] JWT Verification Error:', e);
+          }
+        }
+      }
 
       if (!userId) {
         return NextResponse.json({ success: false, message: 'Non authentifié' }, { status: 401 });

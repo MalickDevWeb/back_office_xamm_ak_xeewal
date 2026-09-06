@@ -90,6 +90,7 @@ export const CompteRenduSchema = z.object({
 export const SondageSchema = z.object({
   question: z.string().min(1, 'Question requise').max(500),
   options: z.array(z.string().min(1).max(200)).min(2, 'Au moins 2 options requises'),
+  imageUrl: z.string().url().optional().nullable(),
   statut: z.enum(['ACTIF', 'CLOS']).optional(),
 });
 

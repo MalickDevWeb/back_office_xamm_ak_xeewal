@@ -26,7 +26,7 @@ export async function GET(
   }
 }
 
-import { AuditService } from '@/features/financial/services/audit.service';
+import { AuditService } from '@/features/finance/services/audit.service';
 import { verify } from 'jsonwebtoken';
 import { config as envConfig } from '@/core/lib/env';
 

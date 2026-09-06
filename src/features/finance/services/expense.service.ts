@@ -1,4 +1,5 @@
-import { prisma } from '../../../lib/prisma';
+import { prisma } from '../../../core/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { FinancialMovementService } from './financial-movement.service';
 
 export class ExpenseService {
@@ -27,7 +28,7 @@ export class ExpenseService {
   }
 
   static async submitExpense(expenseId: string, submittedBy: string) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const expense = await tx.expense.update({
         where: { id: expenseId, status: 'BROUILLON' },
         data: { status: 'EN_ATTENTE_DE_VALIDATION', submittedBy, submittedAt: new Date() }
@@ -42,7 +43,7 @@ export class ExpenseService {
   }
 
   static async approveExpense(expenseId: string, approvedBy: string) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const expense = await tx.expense.update({
         where: { id: expenseId, status: 'EN_ATTENTE_DE_VALIDATION' },
         data: { status: 'VALIDEE', approvedBy, approvedAt: new Date() }
@@ -57,7 +58,7 @@ export class ExpenseService {
   }
 
   static async rejectExpense(expenseId: string, rejectedBy: string, reason: string) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const expense = await tx.expense.update({
         where: { id: expenseId, status: 'EN_ATTENTE_DE_VALIDATION' },
         data: { status: 'BROUILLON', rejectedReason: reason } // Retourne en brouillon
@@ -72,7 +73,7 @@ export class ExpenseService {
   }
 
   static async payExpense(expenseId: string, accountId: string, paidBy: string) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const expense = await tx.expense.findUnique({ where: { id: expenseId } });
       if (!expense) throw new Error("Dépense non trouvée");
       if (expense.status !== 'VALIDEE') throw new Error("La dépense doit être validée avant paiement");

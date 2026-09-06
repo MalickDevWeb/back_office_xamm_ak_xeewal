@@ -2,7 +2,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/core/lib/prisma';
 import { getCorsHeaders } from '@/core/lib/cors';
-import { AuditService } from '@/features/financial/services/audit.service';
+import { AuditService } from '@/features/finance/services/audit.service';
 
 export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, { status: 204, headers: getCorsHeaders(req) });

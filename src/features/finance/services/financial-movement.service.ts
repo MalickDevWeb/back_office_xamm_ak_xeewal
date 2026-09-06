@@ -1,4 +1,4 @@
-import { prisma } from '../../../lib/prisma';
+import { prisma } from '../../../core/lib/prisma';
 import { FinancialMovement, Prisma } from '@prisma/client';
 
 export class FinancialMovementService {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/core/lib/prisma';
+import { RedisService } from '@/core/services/redis.service';
 
 // GET /api/v1/rbac/roles/[id]
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -74,6 +75,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       }
     }
 
+    // Invalider le cache des rôles
+    await RedisService.invalidateByPrefix('rbac:roles:');
+
     return NextResponse.json({ success: true, data: role });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
@@ -88,6 +92,9 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     await prisma.role.delete({
       where: { id }
     });
+
+    // Invalider le cache des rôles
+    await RedisService.invalidateByPrefix('rbac:roles:');
 
     return NextResponse.json({ success: true, message: 'Role deleted successfully' });
   } catch (error: any) {

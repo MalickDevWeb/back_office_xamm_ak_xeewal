@@ -2,7 +2,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getCorsHeaders } from '@/core/lib/cors';
 import { AdminUserService } from '@/features/profiles/services/admin-user.service';
-import { AuditService } from '@/features/financial/services/audit.service';
+import { AuditService } from '@/features/finance/services/audit.service';
 import { verify } from 'jsonwebtoken';
 import { config as envConfig } from '@/core/lib/env';
 

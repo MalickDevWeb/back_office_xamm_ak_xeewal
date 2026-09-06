@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '../src/core/lib/prisma';
-import { AuditService } from '../src/features/financial/services/audit.service';
+import { AuditService } from '../src/features/finance/services/audit.service';
 import { splitFullName, resolveAdminActorFromRequest } from '../src/core/lib/auth-actor';
 import { GET } from '../src/app/api/v1/audit/route';
 

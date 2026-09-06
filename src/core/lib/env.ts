@@ -59,6 +59,10 @@ export const config = {
 
   // Environnement
   nodeEnv: getEnv('NODE_ENV', 'development'),
+
+  // Cache Distribué (Upstash Redis)
+  upstashRedisUrl: getEnv('UPSTASH_REDIS_REST_URL', ''),
+  upstashRedisToken: getEnv('UPSTASH_REDIS_REST_TOKEN', ''),
 };
 
 export default config;
