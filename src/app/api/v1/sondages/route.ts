@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const data = await req.json();
     const validation = validateInput(SondageSchema, data);
     if (!validation.success) {
-      return validationErrorResponse(validation.error);
+      return validationErrorResponse((validation as any).error);
     }
     const newSondage = await prisma.sondage.create({
       data: {
