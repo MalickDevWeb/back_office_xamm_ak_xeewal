@@ -83,8 +83,12 @@ export const CompteRenduSchema = z.object({
   lieu: z.string().max(100).optional().nullable(),
   date: z.string().datetime().optional().nullable(),
   auteur: z.string().max(100).optional().nullable(),
-  contenu: z.string().max(5000).optional().nullable(),
+  contenu: z.string().optional().nullable(), // Augmentation potentielle de la taille pour HTML
   statut: z.enum(['BROUILLON', 'PUBLIE']).optional(),
+  attachments: z.any().optional().nullable(),
+  visibilite: z.enum(['PUBLIC', 'GROUPES', 'PERSONNES']).optional(),
+  groupesCibles: z.array(z.string()).optional(),
+  personnesCibles: z.array(z.string()).optional(),
 });
 
 export const SondageSchema = z.object({

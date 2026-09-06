@@ -169,14 +169,20 @@ model Activite {
 }
 
 model CompteRendu {
-  id        String   @id @default(uuid())
-  titre     String
-  lieu      String
-  date      DateTime
-  auteur    String
-  contenu   String?
-  statut    String   @default("BROUILLON")
-  createdAt DateTime @default(now())
+  id              String   @id @default(uuid())
+  titre           String
+  lieu            String
+  date            DateTime
+  auteur          String
+  contenu         String?
+  statut          String   @default("BROUILLON")
+  createdAt       DateTime @default(now())
+
+  // Nouveaux champs pour l'audience et les pièces jointes
+  attachments     Json?
+  visibilite      String   @default("PUBLIC")
+  groupesCibles   String[] @default([])
+  personnesCibles String[] @default([])
 }
 
 model Message {
