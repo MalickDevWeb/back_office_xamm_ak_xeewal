@@ -1,0 +1,549 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Profile {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String?
+  isSystem    Boolean     @default(false)
+  permissions String[]    @default([])
+  users       AdminUser[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model AdminUser {
+  id        String  @id @default(uuid())
+  email     String  @unique
+  password  String
+  name      String
+  telephone String?
+  role      String  @default("ADMIN")
+  actif     Boolean @default(true)
+
+  profileId String?
+  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([profileId])
+}
+
+model Adherent {
+  id            String   @id @default(uuid())
+  prenom        String
+  nom           String
+  telephone     String   @unique
+  quartier      String
+  profession    String?
+  competences   String?
+  disponibilite String?
+  statut        String   @default("NOUVEAU")
+  createdAt     DateTime @default(now())
+  carteRectoUrl String?
+  carteVersoUrl String?
+
+  poleId String?
+  pole   Pole?   @relation(fields: [poleId], references: [id])
+
+  agentTerrainId String?
+
+  centreVote String?
+  bureauVote String?
+
+  @@index([telephone])
+  @@index([quartier])
+  @@index([statut])
+  @@index([createdAt])
+  @@index([poleId])
+  @@index([agentTerrainId])
+}
+
+model Personne {
+  id        String   @id @default(uuid())
+  telephone String   @unique
+  nom       String?
+  besoins   Besoin[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([telephone])
+}
+
+model Besoin {
+  id          String   @id @default(uuid())
+  description String
+  quartier    String
+  photoUrl    String?
+  contact     String?
+  urgence     String   @default("MOYENNE")
+  statut      String   @default("EN_ATTENTE")
+  createdAt   DateTime @default(now())
+  categorie   String?
+  vocalUrl    String?
+
+  personneId String?
+  personne   Personne? @relation(fields: [personneId], references: [id])
+
+  @@index([contact])
+  @@index([quartier])
+  @@index([statut])
+  @@index([urgence])
+  @@index([createdAt])
+  @@index([personneId])
+}
+
+model Idee {
+  id          String   @id @default(uuid())
+  titre       String
+  description String
+  auteur      String?
+  pole        String?
+  votes       Int      @default(0)
+  statut      String   @default("NOUVELLE")
+  createdAt   DateTime @default(now())
+  categorie   String?
+
+  @@index([statut])
+  @@index([votes])
+  @@index([createdAt])
+}
+
+model Commission {
+  id            String   @id @default(uuid())
+  nom           String
+  responsable   String?
+  membresCount  Int      @default(0)
+  statut        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  dernierProjet String?
+  reunions      Int      @default(0)
+
+  @@index([statut])
+  @@index([createdAt])
+}
+
+model Sondage {
+  id           String          @id @default(uuid())
+  question     String
+  participants Int             @default(0)
+  statut       String          @default("ACTIF")
+  createdAt    DateTime        @default(now())
+  options      SondageOption[]
+
+  @@index([statut])
+  @@index([createdAt])
+}
+
+model SondageOption {
+  id        String  @id @default(uuid())
+  texte     String
+  votes     Int     @default(0)
+  sondageId String
+  sondage   Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade)
+}
+
+model Activite {
+  id          String   @id @default(uuid())
+  titre       String
+  description String?
+  categorie   String
+  date        DateTime
+  typeMedia   String   @default("PHOTOS")
+  mediaUrl    String?
+  mediaCount  Int      @default(0)
+  statut      String   @default("PUBLIE")
+  createdAt   DateTime @default(now())
+}
+
+model CompteRendu {
+  id        String   @id @default(uuid())
+  titre     String
+  lieu      String
+  date      DateTime
+  auteur    String
+  contenu   String?
+  statut    String   @default("BROUILLON")
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  nom       String
+  email     String?
+  telephone String?
+  sujet     String
+  contenu   String
+  lu        Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([lu])
+  @@index([createdAt])
+  @@index([telephone])
+}
+
+model Settings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Editorial {
+  id        String   @id @default(uuid())
+  page      String   @unique
+  content   String
+  updatedAt DateTime @updatedAt
+}
+
+model Option {
+  id        String   @id @default(uuid())
+  type      String
+  value     String
+  label     String
+  ordre     Int      @default(0)
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, value])
+  @@index([type])
+}
+
+model Evenement {
+  id          String   @id @default(uuid())
+  titre       String
+  description String?
+  date        DateTime
+  heureDebut  String?
+  heureFin    String?
+  lieu        String?
+  categorie   String? // Ex: "Causerie", "Rencontre", "Formation"
+  imageUrl    String?
+  statut      String   @default("A_VENIR") // A_VENIR, EN_COURS, TERMINE, ANNULE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+  @@index([statut])
+  @@index([categorie])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  endpoint  String   @unique
+  keys      Json
+  createdAt DateTime @default(now())
+}
+
+model Pole {
+  id          String   @id @default(uuid())
+  titre       String
+  description String
+  icone       String?
+  numero      String?
+  objectifs   String[]
+  statut      String   @default("PUBLIE") // PUBLIE, BROUILLON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  adherents Adherent[]
+
+  @@index([statut])
+  @@index([createdAt])
+}
+
+model AgentTerrain {
+  id          String   @id @default(uuid())
+  prenom      String
+  nom         String
+  telephone   String   @unique
+  password    String
+  points      Int      @default(0)
+  actif       Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([telephone])
+  @@index([actif])
+  @@index([createdAt])
+}
+
+model SuperAdminTerrain {
+  id        String   @id @default(uuid())
+  prenom    String
+  nom       String
+  telephone String   @unique
+  password  String
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([telephone])
+  @@index([actif])
+}
+
+model CentreVote {
+  id        String   @id @default(cuid())
+  nom       String   @unique
+  bureaux   Int      @default(1)
+  zone      String?  @default("THIES NORD")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// MODULE FINANCIER & MULTI-TENANT
+// ==========================================
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  financialAccounts      FinancialAccount[]
+  contributionTypes      ContributionType[]
+  contributions          Contribution[]
+  contributionPayments   ContributionPayment[]
+  paymentTransactions    PaymentTransaction[]
+  paymentProviderConfigs PaymentProviderConfig[]
+  expenses               Expense[]
+  financialMovements     FinancialMovement[]
+  refunds                Refund[]
+  auditLogs              AuditLog[]
+}
+
+model FinancialAccount {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  type           String // CAISSE, BANQUE, WAVE, ORANGE_MONEY, AUTRE
+  currency       String       @default("XOF")
+  status         String       @default("ACTIVE")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  movements FinancialMovement[]
+}
+
+model ContributionType {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  defaultAmount  Int?
+  currency       String       @default("XOF")
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  contributions Contribution[]
+}
+
+model Contribution {
+  id                 String           @id @default(uuid())
+  organizationId     String
+  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  memberId           String
+  contributionTypeId String
+  contributionType   ContributionType @relation(fields: [contributionTypeId], references: [id], onDelete: Restrict)
+  activityId         String?
+  expectedAmount     Int
+  currency           String           @default("XOF")
+  dueDate            DateTime?
+  status             String           @default("EN_ATTENTE") // EN_ATTENTE, PARTIELLEMENT_PAYEE, PAYEE, ANNULEE, REMBOURSEE
+  notes              String?
+  createdBy          String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  payments ContributionPayment[]
+}
+
+model ContributionPayment {
+  id                   String       @id @default(uuid())
+  organizationId       String
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contributionId       String
+  contribution         Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+  amount               Int
+  currency             String       @default("XOF")
+  paymentMethod        String
+  paymentDate          DateTime     @default(now())
+  reference            String?
+  status               String       @default("PENDING") // PENDING, CONFIRMED, REJECTED, CANCELLED, REFUNDED, PARTIALLY_REFUNDED
+  paymentTransactionId String?
+  financialMovementId  String?
+  createdBy            String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  transaction PaymentTransaction? @relation(fields: [paymentTransactionId], references: [id], onDelete: SetNull)
+  movement    FinancialMovement?  @relation(fields: [financialMovementId], references: [id], onDelete: SetNull)
+}
+
+model PaymentTransaction {
+  id                    String       @id @default(uuid())
+  organizationId        String
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider              String // WAVE, ORANGE_MONEY, MANUAL
+  amount                Int
+  currency              String       @default("XOF")
+  status                String       @default("CREATED") // CREATED, PENDING, PENDING_CONFIRMATION, SUCCESS, FAILED, CANCELLED, EXPIRED, REFUNDED, PARTIALLY_REFUNDED, REVERSED
+  idempotencyKey        String
+  externalReference     String?
+  providerTransactionId String?
+  checkoutUrl           String?
+  paymentMethod         String
+  metadata              Json?
+  failureCode           String?
+  failureMessage        String?
+  expiresAt             DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  contributionPayments ContributionPayment[]
+  refunds              Refund[]
+
+  @@unique([organizationId, idempotencyKey])
+  @@unique([organizationId, provider, externalReference])
+}
+
+model PaymentProviderConfig {
+  id                     String        @id @default(uuid())
+  organizationId         String?
+  organization           Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider               String // WAVE, ORANGE_MONEY, MANUAL
+  enabled                Boolean       @default(false)
+  mode                   String        @default("SANDBOX") // SANDBOX, PRODUCTION
+  credentialsEncrypted   String?
+  webhookSecretEncrypted String?
+  configurationEncrypted String?
+  lastTestedAt           DateTime?
+  lastTestStatus         String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  @@unique([organizationId, provider])
+}
+
+model PaymentWebhookEvent {
+  id           String    @id @default(uuid())
+  provider     String
+  eventId      String
+  payloadHash  String
+  status       String    @default("PENDING")
+  receivedAt   DateTime  @default(now())
+  processedAt  DateTime?
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+
+  @@unique([provider, eventId])
+}
+
+model Expense {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  categoryId     String?
+  activityId     String?
+  amount         Int
+  currency       String       @default("XOF")
+  beneficiary    String
+  reason         String
+  status         String       @default("BROUILLON") // BROUILLON, EN_ATTENTE_DE_VALIDATION, VALIDEE, REJETEE, PAYEE, ANNULEE
+  createdBy      String
+  submittedBy    String?
+  approvedBy     String?
+  paidBy         String?
+  paidAt         DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  statusHistory ExpenseStatusHistory[]
+  attachments   ExpenseAttachment[]
+}
+
+model ExpenseStatusHistory {
+  id         String   @id @default(uuid())
+  expenseId  String
+  expense    Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  fromStatus String
+  toStatus   String
+  reason     String?
+  changedBy  String
+  createdAt  DateTime @default(now())
+}
+
+model FinancialMovement {
+  id                 String           @id @default(uuid())
+  organizationId     String
+  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  financialAccountId String
+  account            FinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Restrict)
+  type               String // COTISATION, AUTRE_ENCAISSEMENT, DEPENSE, REMBOURSEMENT, ANNULATION, AJUSTEMENT
+  direction          String // CREDIT, DEBIT
+  amount             Int
+  currency           String           @default("XOF")
+  sourceType         String // PAYMENT_TRANSACTION, EXPENSE, MANUAL
+  sourceId           String
+  internalReference  String?
+  externalReference  String?
+  reversalOfId       String?
+  createdBy          String
+  createdAt          DateTime         @default(now())
+
+  contributionPayments ContributionPayment[]
+}
+
+model Refund {
+  id                   String             @id @default(uuid())
+  organizationId       String
+  organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paymentTransactionId String
+  paymentTransaction   PaymentTransaction @relation(fields: [paymentTransactionId], references: [id], onDelete: Restrict)
+  amount               Int
+  reason               String
+  status               String             @default("PENDING")
+  createdBy            String
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model ExpenseAttachment {
+  id           String   @id @default(uuid())
+  expenseId    String
+  expense      Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  storageKey   String
+  originalName String
+  mimeType     String
+  size         Int
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+}
+
+model AuditLog {
+  id             String        @id @default(uuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorId        String?
+  action         String
+  entityType     String
+  entityId       String
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+}

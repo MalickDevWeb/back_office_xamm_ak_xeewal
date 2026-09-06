@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from './prisma';
 import { getCorsHeaders } from './cors';
+import { AuditService } from '@/features/financial/services/audit.service';
 
 export type PrismaModelName =
   | 'adherent' | 'besoin' | 'idee' | 'message' | 'evenement' | 'activite'
@@ -41,6 +42,22 @@ export async function handleBulkDelete(req: NextRequest, modelName: PrismaModelN
     const body = await req.json();
     const ids = Array.isArray(body.ids) ? body.ids.filter((id: any) => typeof id === 'string') : [];
     const result = await bulkDeleteByIds(modelName, ids);
+
+    if (result.success && result.deleted > 0) {
+      await AuditService.log({
+        actorId: (req as any)?.user?.id || (req as any)?.user?.email || 'Admin',
+        actorName: (req as any)?.user?.name,
+        actorEmail: (req as any)?.user?.email,
+        action: `BULK_DELETE_${modelName.toUpperCase()}`,
+        category: modelName === 'adherent' ? 'MEMBERS' : 'SYSTEM',
+        severity: 'CRITICAL',
+        entityType: modelName,
+        entityId: ids.slice(0, 10).join(','),
+        metadata: { deletedCount: result.deleted, requestedCount: result.requested, sampleIds: ids.slice(0, 20) },
+        ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1',
+      });
+    }
+
     if (!result.success) return NextResponse.json(result, { status: 400, headers: corsHeaders });
     return NextResponse.json(result, { status: 200, headers: corsHeaders });
   } catch (error: any) {
@@ -55,6 +72,22 @@ export async function handleDeleteAll(req: NextRequest, modelName: PrismaModelNa
     return NextResponse.json({ success: false, deleted: 0, message: 'Header X-Confirm: DELETE_ALL requis' }, { status: 403, headers: corsHeaders });
   }
   const result = await deleteAll(modelName);
+
+  if (result.success && result.deleted > 0) {
+    await AuditService.log({
+      actorId: (req as any)?.user?.id || (req as any)?.user?.email || 'Admin',
+      actorName: (req as any)?.user?.name,
+      actorEmail: (req as any)?.user?.email,
+      action: `DELETE_ALL_${modelName.toUpperCase()}`,
+      category: modelName === 'adherent' ? 'MEMBERS' : 'SYSTEM',
+      severity: 'CRITICAL',
+      entityType: modelName,
+      entityId: 'ALL',
+      metadata: { deletedCount: result.deleted, requestedCount: result.requested },
+      ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1',
+    });
+  }
+
   if (!result.success) return NextResponse.json(result, { status: 400, headers: corsHeaders });
   return NextResponse.json(result, { status: 200, headers: corsHeaders });
 }

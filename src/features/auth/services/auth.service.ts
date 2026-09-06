@@ -5,9 +5,16 @@ import { sign, SignOptions } from 'jsonwebtoken';
 
 export class AuthService {
   async login(email: string, password: string) {
-    const user = await prisma.adminUser.findUnique({ where: { email } });
+    const user = await prisma.adminUser.findUnique({
+      where: { email },
+      include: { profile: true },
+    });
     if (!user) {
       throw new Error('Identifiants invalides');
+    }
+
+    if (!user.actif) {
+      throw new Error('Ce compte a été désactivé. Veuillez contacter un administrateur.');
     }
 
     const isValid = await bcrypt.compare(password, user.password);
@@ -15,9 +22,22 @@ export class AuthService {
       throw new Error('Identifiants invalides');
     }
 
+    // Calcul des permissions effectives
+    let permissions: string[] = [];
+    if (user.role === 'SUPER_ADMIN' || (user.role === 'ADMIN' && (!user.profile || user.profile.isSystem))) {
+      permissions = ['*'];
+    } else if (user.profile && Array.isArray(user.profile.permissions)) {
+      permissions = user.profile.permissions;
+    }
+
     const secret = envConfig.jwtSecret;
     const token = sign(
-      { id: user.id, role: user.role },
+      {
+        id: user.id,
+        role: user.role,
+        profileId: user.profileId,
+        permissions,
+      },
       secret,
       { expiresIn: envConfig.jwtExpiresIn } as SignOptions
     );
@@ -27,9 +47,21 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        telephone: user.telephone,
+        role: user.role,
+        actif: user.actif,
+        profileId: user.profileId,
+        profile: user.profile
+          ? {
+              id: user.profile.id,
+              name: user.profile.name,
+              isSystem: user.profile.isSystem,
+              permissions: user.profile.permissions,
+            }
+          : null,
+        permissions,
       },
-      token
+      token,
     };
   }
 

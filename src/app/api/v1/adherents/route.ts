@@ -69,16 +69,56 @@ export async function GET(req: Request) {
       }
     }
 
-    const adherents = await prisma.adherent.findMany({
-      where,
-      orderBy: { createdAt: 'desc' }
-    });
+    const limitParam = searchParams.get('limit');
+    const pageParam = searchParams.get('page');
+    const allParam = searchParams.get('all');
+
+    let take: number | undefined = undefined;
+    let skip: number | undefined = undefined;
+
+    if (limitParam && allParam !== 'true') {
+      const parsedLimit = parseInt(limitParam, 10);
+      if (!isNaN(parsedLimit) && parsedLimit > 0) {
+        take = Math.min(parsedLimit, 200);
+        const parsedPage = pageParam ? parseInt(pageParam, 10) : 1;
+        skip = (Math.max(parsedPage, 1) - 1) * take;
+      }
+    }
+
+    let adherents: any[];
+    let total: number;
+
+    if (take !== undefined) {
+      const [countResult, listResult] = await Promise.all([
+        prisma.adherent.count({ where }),
+        prisma.adherent.findMany({
+          where,
+          take,
+          skip,
+          orderBy: { createdAt: 'desc' }
+        })
+      ]);
+      total = countResult;
+      adherents = listResult;
+    } else {
+      adherents = await prisma.adherent.findMany({
+        where,
+        orderBy: { createdAt: 'desc' }
+      });
+      total = adherents.length;
+    }
+
+    const responseHeaders = new Headers();
+    // Cache optimisé : les requêtes rapprochées répondent en 0ms
+    responseHeaders.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
 
     return NextResponse.json({
       success: true,
       data: adherents,
-      total: adherents.length,
+      total,
       filters: { telephone, nom, quartier, localite, statut, agentTerrainId, centreVote, bureauVote, startDate, endDate }
+    }, {
+      headers: responseHeaders
     });
   } catch (error) {
     console.error('GET /adherents error:', error);

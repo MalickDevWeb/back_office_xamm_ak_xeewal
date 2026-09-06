@@ -8,6 +8,17 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model Profile {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String?
+  isSystem    Boolean     @default(false)
+  permissions String[]    @default([])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  users       AdminUser[]
+}
+
 model AdminUser {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -16,29 +27,41 @@ model AdminUser {
   role      String   @default("ADMIN")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  actif     Boolean  @default(true)
+  profileId String?
+  telephone String?
+  profile   Profile? @relation(fields: [profileId], references: [id])
+
+  userRoles UserRole[]
+
+  @@index([email])
+  @@index([profileId])
 }
 
 model Adherent {
-  id            String   @id @default(uuid())
-  prenom        String
-  nom           String
-  telephone     String   @unique
-  quartier      String
-  profession    String?
-  competences   String?
-  disponibilite String?
-  statut        String   @default("NOUVEAU")
-  createdAt     DateTime @default(now())
-  carteRectoUrl String?
-  carteVersoUrl String?
-
-  poleId String?
-  pole   Pole?   @relation(fields: [poleId], references: [id])
-
-  agentTerrainId String?
-
-  centreVote String?
-  bureauVote String?
+  id                     String                   @id @default(uuid())
+  prenom                 String
+  nom                    String
+  telephone              String                   @unique
+  email                  String?                  @unique
+  quartier               String
+  profession             String?
+  competences            String?
+  disponibilite          String?
+  statut                 String                   @default("NOUVEAU")
+  createdAt              DateTime                 @default(now())
+  carteRectoUrl          String?
+  carteVersoUrl          String?
+  poleId                 String?
+  agentTerrainId         String?
+  bureauVote             String?
+  centreVote             String?
+  pole                   Pole?                    @relation(fields: [poleId], references: [id])
+  Contribution           Contribution[]
+  GroupMember            GroupMember[]
+  NotificationPreference NotificationPreference[]
+  NotificationRecipient  NotificationRecipient[]
+  PushSubscription       PushSubscription[]
 
   @@index([telephone])
   @@index([quartier])
@@ -52,27 +75,26 @@ model Personne {
   id        String   @id @default(uuid())
   telephone String   @unique
   nom       String?
-  besoins   Besoin[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  besoins   Besoin[]
 
   @@index([telephone])
 }
 
 model Besoin {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   description String
   quartier    String
   photoUrl    String?
   contact     String?
-  urgence     String   @default("MOYENNE")
-  statut      String   @default("EN_ATTENTE")
-  createdAt   DateTime @default(now())
+  urgence     String    @default("MOYENNE")
+  statut      String    @default("EN_ATTENTE")
+  createdAt   DateTime  @default(now())
   categorie   String?
   vocalUrl    String?
-
-  personneId String?
-  personne   Personne? @relation(fields: [personneId], references: [id])
+  personneId  String?
+  personne    Personne? @relation(fields: [personneId], references: [id])
 
   @@index([contact])
   @@index([quartier])
@@ -135,14 +157,14 @@ model SondageOption {
 model Activite {
   id          String   @id @default(uuid())
   titre       String
-  description String?
   categorie   String
   date        DateTime
   typeMedia   String   @default("PHOTOS")
-  mediaUrl    String?
   mediaCount  Int      @default(0)
   statut      String   @default("PUBLIE")
   createdAt   DateTime @default(now())
+  description String?
+  mediaUrl    String?
 }
 
 model CompteRendu {
@@ -207,9 +229,9 @@ model Evenement {
   heureDebut  String?
   heureFin    String?
   lieu        String?
-  categorie   String? // Ex: "Causerie", "Rencontre", "Formation"
+  categorie   String?
   imageUrl    String?
-  statut      String   @default("A_VENIR") // A_VENIR, EN_COURS, TERMINE, ANNULE
+  statut      String   @default("A_VENIR")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -219,24 +241,25 @@ model Evenement {
 }
 
 model PushSubscription {
-  id        String   @id @default(uuid())
-  endpoint  String   @unique
-  keys      Json
-  createdAt DateTime @default(now())
+  id         String    @id @default(uuid())
+  adherentId String?
+  endpoint   String    @unique
+  keys       Json
+  createdAt  DateTime  @default(now())
+  Adherent   Adherent? @relation(fields: [adherentId], references: [id], onDelete: Cascade)
 }
 
 model Pole {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   titre       String
   description String
+  statut      String     @default("PUBLIE")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   icone       String?
   numero      String?
   objectifs   String[]
-  statut      String   @default("PUBLIE") // PUBLIE, BROUILLON
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  adherents Adherent[]
+  adherents   Adherent[]
 
   @@index([statut])
   @@index([createdAt])
@@ -246,13 +269,13 @@ model AgentTerrain {
   id          String   @id @default(uuid())
   prenom      String
   nom         String
-  telephone   String   @unique
   password    String
   points      Int      @default(0)
   actif       Boolean  @default(true)
   createdById String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  telephone   String   @unique
 
   @@index([telephone])
   @@index([actif])
@@ -273,11 +296,574 @@ model SuperAdminTerrain {
   @@index([actif])
 }
 
-model CentreVote {
-  id          String   @id @default(cuid())
-  nom         String   @unique
-  bureaux     Int      @default(1)
-  zone        String?  @default("THIES NORD")
+model ExternalService {
+  id        String   @id @default(uuid())
+  provider  String   @unique // ex: "SMTP", "ORANGE_SMS", "WAVE", "VAPID"
+  isActive  Boolean  @default(true)
+  config    Json // Stocke les clés chiffrées
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
+// ==========================================
+// MOTEUR RBAC ET GESTION DES MODULES
+// ==========================================
+
+model Module {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique // ex: "finance", "events", "members"
+  description String?
+  icon        String?
+  status      String   @default("ACTIVE") // ACTIVE, INACTIVE, MAINTENANCE
+  isSystem    Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  subModules          SubModule[]
+  permissions         Permission[]
+  organizationModules OrganizationModule[]
+}
+
+model SubModule {
+  id          String   @id @default(uuid())
+  moduleId    String
+  name        String
+  slug        String   @unique // ex: "finance.expenses"
+  description String?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationModule {
+  id             String    @id @default(uuid())
+  organizationId String
+  moduleId       String
+  enabled        Boolean   @default(false)
+  enabledAt      DateTime?
+  enabledBy      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  module       Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, moduleId])
+}
+
+model Role {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  description    String?
+  isSystem       Boolean  @default(false) // Super Admin, etc.
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@unique([organizationId, name])
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  moduleId    String
+  slug        String   @unique // ex: "finance.expenses.read"
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  module          Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  user AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model CentreVote {
+  id        String   @id @default(cuid())
+  nom       String   @unique
+  bureaux   Int      @default(1)
+  zone      String?  @default("THIES NORD")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Organization {
+  id                     String                  @id @default(uuid())
+  name                   String
+  slug                   String                  @unique
+  description            String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  auditLogs              AuditLog[]
+  contributions          Contribution[]
+  contributionPayments   ContributionPayment[]
+  contributionTypes      ContributionType[]
+  expenses               Expense[]
+  financialAccounts      FinancialAccount[]
+  financialMovements     FinancialMovement[]
+  Group                  Group[]
+  Notification           Notification[]
+  paymentProviderConfigs PaymentProviderConfig[]
+  paymentTransactions    PaymentTransaction[]
+  refunds                Refund[]
+  OrganizationModule     OrganizationModule[]
+  Role                   Role[]
+}
+
+model FinancialAccount {
+  id             String              @id @default(uuid())
+  organizationId String
+  name           String
+  type           String              @default("CAISSE")
+  currency       String              @default("XOF")
+  status         String              @default("ACTIVE")
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  Expense        Expense[]
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  movements      FinancialMovement[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([type])
+}
+
+model ContributionType {
+  id             String         @id @default(uuid())
+  organizationId String
+  name           String
+  description    String?
+  defaultAmount  Int            @default(0)
+  currency       String         @default("XOF")
+  active         Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  contributions  Contribution[]
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, active])
+  @@index([organizationId])
+}
+
+model Contribution {
+  id                 String                @id @default(uuid())
+  organizationId     String
+  memberId           String
+  contributionTypeId String
+  activityId         String?
+  expectedAmount     Int
+  currency           String                @default("XOF")
+  dueDate            DateTime?
+  status             String                @default("EN_ATTENTE")
+  notes              String?
+  createdBy          String?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  contributionType   ContributionType      @relation(fields: [contributionTypeId], references: [id], onDelete: Cascade)
+  Adherent           Adherent              @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  organization       Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payments           ContributionPayment[]
+
+  @@index([contributionTypeId])
+  @@index([dueDate])
+  @@index([memberId])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model ContributionPayment {
+  id                   String              @id @default(uuid())
+  organizationId       String
+  contributionId       String
+  amount               Int
+  currency             String              @default("XOF")
+  paymentMethod        String              @default("MANUAL")
+  paymentDate          DateTime            @default(now())
+  reference            String
+  proofUrl             String?
+  status               String              @default("PENDING")
+  paymentTransactionId String?             @unique
+  financialMovementId  String?             @unique
+  createdBy            String?
+  confirmedBy          String?
+  confirmedAt          DateTime?
+  rejectedReason       String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  contribution         Contribution        @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+  movement             FinancialMovement?  @relation(fields: [financialMovementId], references: [id])
+  organization         Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  transaction          PaymentTransaction? @relation(fields: [paymentTransactionId], references: [id])
+
+  @@index([contributionId])
+  @@index([organizationId])
+  @@index([paymentDate])
+  @@index([status])
+}
+
+model PaymentTransaction {
+  id                    String               @id @default(uuid())
+  organizationId        String
+  provider              String
+  amount                Int
+  currency              String               @default("XOF")
+  status                String               @default("CREATED")
+  idempotencyKey        String
+  externalReference     String?
+  providerTransactionId String?
+  checkoutUrl           String?
+  paymentMethod         String?
+  metadata              Json?
+  failureCode           String?
+  failureMessage        String?
+  expiresAt             DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  contributionPayments  ContributionPayment?
+  organization          Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  refunds               Refund[]
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([externalReference])
+  @@index([organizationId])
+  @@index([providerTransactionId])
+  @@index([provider])
+  @@index([status])
+}
+
+model PaymentProviderConfig {
+  id                     String        @id @default(uuid())
+  organizationId         String?
+  provider               String
+  enabled                Boolean       @default(false)
+  mode                   String        @default("SANDBOX")
+  credentialsEncrypted   String?
+  webhookSecretEncrypted String?
+  configurationEncrypted String?
+  lastTestedAt           DateTime?
+  lastTestStatus         String?
+  lastTestMessage        String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  organization           Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@index([enabled])
+  @@index([provider])
+}
+
+model PaymentWebhookEvent {
+  id           String    @id @default(uuid())
+  provider     String
+  eventId      String
+  payloadHash  String
+  status       String    @default("RECEIVED")
+  receivedAt   DateTime  @default(now())
+  processedAt  DateTime?
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+
+  @@unique([provider, eventId])
+  @@index([provider])
+  @@index([status])
+}
+
+model Expense {
+  id                  String                 @id @default(uuid())
+  organizationId      String
+  financialAccountId  String?
+  category            String
+  activityId          String?
+  amount              Int
+  currency            String                 @default("XOF")
+  beneficiary         String
+  reason              String
+  status              String                 @default("BROUILLON")
+  createdBy           String
+  submittedBy         String?
+  submittedAt         DateTime?
+  approvedBy          String?
+  approvedAt          DateTime?
+  rejectedReason      String?
+  paidBy              String?
+  paidAt              DateTime?
+  financialMovementId String?                @unique
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  FinancialAccount    FinancialAccount?      @relation(fields: [financialAccountId], references: [id])
+  FinancialMovement   FinancialMovement?     @relation(fields: [financialMovementId], references: [id])
+  organization        Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  attachments         ExpenseAttachment[]
+  statusHistory       ExpenseStatusHistory[]
+
+  @@index([category])
+  @@index([financialAccountId])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model ExpenseStatusHistory {
+  id         String   @id @default(uuid())
+  expenseId  String
+  fromStatus String
+  toStatus   String
+  reason     String?
+  changedBy  String?
+  createdAt  DateTime @default(now())
+  expense    Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+}
+
+model FinancialMovement {
+  id                   String               @id @default(uuid())
+  organizationId       String
+  financialAccountId   String
+  type                 String
+  direction            String
+  amount               Int
+  currency             String               @default("XOF")
+  sourceType           String
+  sourceId             String
+  internalReference    String?
+  externalReference    String?
+  reversalOfId         String?
+  notes                String?
+  createdBy            String?
+  createdAt            DateTime             @default(now())
+  contributionPayments ContributionPayment?
+  Expense              Expense?
+  account              FinancialAccount     @relation(fields: [financialAccountId], references: [id])
+  organization         Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  Refund               Refund?
+
+  @@index([createdAt])
+  @@index([direction])
+  @@index([financialAccountId])
+  @@index([organizationId])
+  @@index([sourceType, sourceId])
+  @@index([type])
+}
+
+model Refund {
+  id                   String             @id @default(uuid())
+  organizationId       String
+  paymentTransactionId String
+  amount               Int
+  currency             String             @default("XOF")
+  reason               String
+  status               String             @default("COMPLETED")
+  financialMovementId  String?            @unique
+  createdBy            String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  FinancialMovement    FinancialMovement? @relation(fields: [financialMovementId], references: [id])
+  organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paymentTransaction   PaymentTransaction @relation(fields: [paymentTransactionId], references: [id])
+
+  @@index([organizationId])
+  @@index([paymentTransactionId])
+  @@index([status])
+}
+
+model ExpenseAttachment {
+  id           String   @id @default(uuid())
+  expenseId    String
+  storageKey   String
+  fileUrl      String
+  originalName String
+  mimeType     String
+  size         Int
+  uploadedBy   String?
+  createdAt    DateTime @default(now())
+  expense      Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+}
+
+model AuditLog {
+  id             String        @id @default(uuid())
+  organizationId String?
+  actorId        String?
+  action         String
+  entityType     String
+  entityId       String
+  metadata       Json?
+  ipAddress      String?
+  createdAt      DateTime      @default(now())
+  actorEmail     String?
+  actorName      String?
+  category       String        @default("FINANCE")
+  severity       String        @default("INFO")
+  actorNom       String?
+  actorPhone     String?
+  actorPrenom    String?
+  actorProfile   String?
+  actorRole      String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([action])
+  @@index([actorEmail])
+  @@index([actorProfile])
+  @@index([category])
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@index([organizationId])
+  @@index([severity])
+}
+
+model Group {
+  id                 String               @id
+  organizationId     String
+  name               String
+  type               String
+  description        String?
+  status             String               @default("ACTIVE")
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  archivedAt         DateTime?
+  Organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  GroupMember        GroupMember[]
+  NotificationTarget NotificationTarget[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([type])
+}
+
+model GroupMember {
+  id         String    @id
+  groupId    String
+  memberId   String
+  assignedAt DateTime  @default(now())
+  assignedBy String?
+  removedAt  DateTime?
+  Group      Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  Adherent   Adherent  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, memberId])
+  @@index([groupId])
+  @@index([memberId])
+  @@index([removedAt])
+}
+
+model Notification {
+  id                    String                  @id
+  organizationId        String
+  title                 String
+  message               String
+  strategy              String                  @default("MULTI_CHANNEL")
+  status                String                  @default("DRAFT")
+  metadata              Json?
+  scheduledAt           DateTime?
+  processingStartedAt   DateTime?
+  sentAt                DateTime?
+  completedAt           DateTime?
+  createdBy             String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime
+  Organization          Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  NotificationRecipient NotificationRecipient[]
+  NotificationTarget    NotificationTarget[]
+
+  @@index([createdAt])
+  @@index([organizationId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+model NotificationDelivery {
+  id                      String                @id
+  notificationRecipientId String
+  channel                 String
+  status                  String                @default("PENDING")
+  attemptCount            Int                   @default(0)
+  provider                String?
+  providerMessageId       String?
+  queuedAt                DateTime?
+  sentAt                  DateTime?
+  deliveredAt             DateTime?
+  readAt                  DateTime?
+  failedAt                DateTime?
+  nextRetryAt             DateTime?
+  errorCode               String?
+  errorMessage            String?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime
+  NotificationRecipient   NotificationRecipient @relation(fields: [notificationRecipientId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationRecipientId, channel])
+  @@index([channel])
+  @@index([notificationRecipientId])
+  @@index([status])
+}
+
+model NotificationPreference {
+  id          String   @id
+  memberId    String
+  channel     String
+  enabled     Boolean  @default(true)
+  priority    Int      @default(1)
+  destination String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Adherent    Adherent @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, channel])
+  @@index([memberId])
+}
+
+model NotificationRecipient {
+  id                   String                 @id
+  notificationId       String
+  memberId             String
+  createdAt            DateTime               @default(now())
+  NotificationDelivery NotificationDelivery[]
+  Adherent             Adherent               @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  Notification         Notification           @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, memberId])
+  @@index([memberId])
+  @@index([notificationId])
+}
+
+model NotificationTarget {
+  id             String       @id
+  notificationId String
+  groupId        String
+  createdAt      DateTime     @default(now())
+  Group          Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  Notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, groupId])
+  @@index([groupId])
+  @@index([notificationId])
 }
