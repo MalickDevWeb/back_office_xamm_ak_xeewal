@@ -1,11 +1,9 @@
 export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../../core/lib/prisma';
-import { withAuth } from '../../../../../core/middlewares/authGuard';
+import { requirePermission } from '../../../../../core/security/permission.guard';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  // Optionnel: Vous pouvez décommenter withAuth pour protéger explicitement au niveau Node 
-  // (le middleware Edge s'en charge déjà, mais au cas où).
+export const PUT = requirePermission('besoins.update', async (req: Request, { params }: { params: { id: string } }) => {
   try {
     const data = await req.json();
     const updated = await (prisma.besoin as any).update({
@@ -16,9 +14,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }
-}
+});
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export const DELETE = requirePermission('besoins.delete', async (req: Request, { params }: { params: { id: string } }) => {
   try {
     await (prisma.besoin as any).delete({
       where: { id: params.id }
@@ -27,4 +25,5 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la suppression" }, { status: 500 });
   }
-}
+});
+

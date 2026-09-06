@@ -2,6 +2,7 @@ export const runtime = 'nodejs';
 import { validateInput, validationErrorResponse, EditorialSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
+import { requirePermission } from '../../../../core/security/permission.guard';
 
 
 
@@ -23,7 +24,8 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+// POST protégé : seuls les utilisateurs avec content.update peuvent modifier le contenu éditorial
+export const POST = requirePermission('content.update', async (req: Request) => {
   try {
     const body = await req.json();
     const validation = validateInput(EditorialSchema, body);
@@ -42,4 +44,4 @@ export async function POST(req: Request) {
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }
-}
+});

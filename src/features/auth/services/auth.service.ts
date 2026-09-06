@@ -1,7 +1,8 @@
 import { prisma } from '../../../core/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { config as envConfig } from '@/core/lib/env';
-import { sign, SignOptions } from 'jsonwebtoken';
+import { sign, verify, SignOptions } from 'jsonwebtoken';
+import { RedisService } from '@/core/services/redis.service';
 
 export class AuthService {
   async login(email: string, password: string) {
@@ -100,6 +101,24 @@ export class AuthService {
       success: true,
       message: 'Mot de passe mis à jour avec succès'
     };
+  }
+
+  async logout(token: string) {
+    try {
+      const secret = envConfig.jwtSecret;
+      const decoded = verify(token, secret) as any;
+      
+      if (decoded.exp) {
+        const now = Math.floor(Date.now() / 1000);
+        const ttl = decoded.exp - now;
+        
+        if (ttl > 0) {
+          await RedisService.set(`blacklist:token:${token}`, true, ttl);
+        }
+      }
+    } catch (error) {
+      // Ignorer si le token est déjà expiré ou invalide
+    }
   }
 }
 

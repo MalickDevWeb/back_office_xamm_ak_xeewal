@@ -31,6 +31,19 @@ export class AuthController {
       );
     }
   }
+
+  async logout(request: NextRequest) {
+    try {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        await authService.logout(token);
+      }
+      return NextResponse.json({ success: true, message: 'Déconnexion réussie' }, { status: 200 });
+    } catch (error: any) {
+      return NextResponse.json({ success: true, message: 'Déconnexion' }, { status: 200 });
+    }
+  }
 }
 
 export const authController = new AuthController();

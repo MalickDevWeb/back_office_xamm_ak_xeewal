@@ -2,8 +2,9 @@ export const runtime = 'nodejs';
 import { validateInput, validationErrorResponse, BesoinSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
+import { requirePermission } from '../../../../core/security/permission.guard';
 
-export async function GET(req: Request) {
+export const GET = requirePermission('besoins.read', async (req: Request) => {
   try {
     const url = new URL(req.url);
     const searchParams = url.searchParams;
@@ -77,8 +78,9 @@ export async function GET(req: Request) {
     console.error('GET /besoins error:', error);
     return NextResponse.json({ success: false, message: "Erreur base de données" }, { status: 500 });
   }
-}
+});
 
+// POST public : les citoyens peuvent signaler un besoin sans authentification
 export async function POST(req: Request) {
   try {
     const data = await req.json();

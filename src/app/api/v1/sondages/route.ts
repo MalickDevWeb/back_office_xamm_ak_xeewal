@@ -2,10 +2,11 @@ export const runtime = 'nodejs';
 import { validateInput, validationErrorResponse, SondageSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
+import { requirePermission } from '../../../../core/security/permission.guard';
 
 
 
-export async function GET() {
+export const GET = requirePermission('sondages.read', async () => {
   try {
     const sondages = await prisma.sondage.findMany({
       include: { options: true },
@@ -15,9 +16,9 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur base de données" }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
+export const POST = requirePermission('sondages.create', async (req: Request) => {
   try {
     const data = await req.json();
     const validation = validateInput(SondageSchema, data);
@@ -38,4 +39,4 @@ export async function POST(req: Request) {
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la création" }, { status: 500 });
   }
-}
+});

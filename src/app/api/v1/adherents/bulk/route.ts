@@ -1,7 +1,8 @@
 export const runtime = 'nodejs';
 import { NextRequest } from 'next/server';
 import { handleBulkDelete } from '../../../../../core/lib/bulk-delete';
-import { withAuth } from '../../../../../core/middlewares/authGuard';
-export async function POST(req: NextRequest) {
-  return withAuth(req as any, async (req: NextRequest) => handleBulkDelete(req, 'adherent'));
-}
+import { requirePermission } from '../../../../../core/security/permission.guard';
+
+export const POST = requirePermission('members.delete', async (req: NextRequest) => {
+  return handleBulkDelete(req, 'adherent');
+});

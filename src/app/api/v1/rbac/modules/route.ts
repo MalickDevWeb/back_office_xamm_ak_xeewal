@@ -11,6 +11,41 @@ const EXCLUDED_PERMISSIONS = new Set(['rbac.manage']);
 const PERMISSION_LABELS: Record<string, { label: string; description: string }> = {
   // Dashboard
   'dashboard.read':                 { label: 'Voir le tableau de bord',          description: 'Accès en lecture au tableau de bord principal' },
+  // Besoins
+  'besoins.read':                   { label: 'Consulter les besoins',             description: 'Voir la liste et le détail des besoins signalés' },
+  'besoins.create':                 { label: 'Créer un besoin',                   description: 'Signaler un nouveau besoin' },
+  'besoins.update':                 { label: 'Modifier un besoin',                description: 'Mettre à jour un besoin existant' },
+  'besoins.delete':                 { label: 'Supprimer un besoin',               description: 'Archiver ou supprimer un besoin' },
+  // Idées
+  'idees.read':                     { label: 'Consulter les idées',               description: 'Voir la liste des idées et suggestions' },
+  'idees.create':                   { label: 'Créer une idée',                    description: 'Proposer une nouvelle idée' },
+  'idees.update':                   { label: 'Modifier une idée',                 description: 'Mettre à jour une idée existante' },
+  'idees.delete':                   { label: 'Supprimer une idée',                description: 'Archiver ou supprimer une idée' },
+  // Messages
+  'messages.read':                  { label: 'Consulter les messages',            description: 'Voir la liste des messages et correspondances' },
+  'messages.create':                { label: 'Créer un message',                  description: 'Rédiger et envoyer un message' },
+  'messages.update':                { label: 'Modifier un message',               description: 'Mettre à jour un brouillon de message' },
+  'messages.delete':                { label: 'Supprimer un message',              description: 'Archiver ou supprimer un message' },
+  // Sondages
+  'sondages.read':                  { label: 'Consulter les sondages',            description: 'Voir la liste des sondages et enquêtes' },
+  'sondages.create':                { label: 'Créer un sondage',                  description: 'Créer un nouveau sondage' },
+  'sondages.update':                { label: 'Modifier un sondage',               description: 'Mettre à jour un sondage existant' },
+  'sondages.delete':                { label: 'Supprimer un sondage',              description: 'Archiver ou supprimer un sondage' },
+  // Comptes-rendus
+  'comptes_rendus.read':            { label: 'Consulter les comptes-rendus',      description: 'Voir la liste des comptes-rendus' },
+  'comptes_rendus.create':          { label: 'Créer un compte-rendu',             description: 'Rédiger un nouveau compte-rendu' },
+  'comptes_rendus.update':          { label: 'Modifier un compte-rendu',          description: 'Mettre à jour un compte-rendu existant' },
+  'comptes_rendus.delete':          { label: 'Supprimer un compte-rendu',         description: 'Archiver ou supprimer un compte-rendu' },
+  // Agents Terrain
+  'agents_terrain.read':            { label: 'Consulter les agents terrain',      description: 'Voir la liste des agents de terrain' },
+  'agents_terrain.create':          { label: 'Créer un agent terrain',            description: 'Ajouter un nouvel agent de terrain' },
+  'agents_terrain.update':          { label: 'Modifier un agent terrain',         description: 'Mettre à jour un agent existant' },
+  'agents_terrain.delete':          { label: 'Supprimer un agent terrain',        description: 'Archiver ou supprimer un agent' },
+  // Notifications
+  'notifications.read':             { label: 'Consulter les notifications',       description: 'Voir l\'historique des notifications push' },
+  'notifications.create':           { label: 'Créer une notification',            description: 'Envoyer une nouvelle notification push' },
+  'notifications.update':           { label: 'Modifier une notification',         description: 'Mettre à jour un brouillon de notification' },
+  'notifications.delete':           { label: 'Supprimer une notification',        description: 'Archiver ou supprimer une notification' },
   // Membres
   'members.read':                   { label: 'Consulter les adhérents',           description: 'Voir la liste et les fiches des adhérents' },
   'members.create':                 { label: 'Ajouter un adhérent',               description: 'Créer un nouveau dossier adhérent' },

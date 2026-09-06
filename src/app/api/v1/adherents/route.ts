@@ -4,8 +4,9 @@ import { NextResponse } from 'next/server';
 import { config as envConfig } from '@/core/lib/env';
 import { prisma } from '../../../../core/lib/prisma';
 import { sign } from 'jsonwebtoken';
+import { requirePermission } from '../../../../core/security/permission.guard';
 
-export async function GET(req: Request) {
+export const GET = requirePermission('members.read', async (req: Request) => {
   try {
     const url = new URL(req.url);
     const searchParams = url.searchParams;
@@ -124,9 +125,9 @@ export async function GET(req: Request) {
     console.error('GET /adherents error:', error);
     return NextResponse.json({ success: false, message: "Erreur base de données" }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
+export const POST = requirePermission('members.create', async (req: Request) => {
   try {
     const data = await req.json();
     const validation = validateInput(AdherentSchema, data);
@@ -183,4 +184,5 @@ export async function POST(req: Request) {
     console.error('POST /adherents error:', error);
     return NextResponse.json({ success: false, message: "Erreur lors de la création", error: error.message }, { status: 500 });
   }
-}
+});
+

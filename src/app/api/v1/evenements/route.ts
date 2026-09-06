@@ -2,8 +2,9 @@ export const runtime = 'nodejs';
 import { validateInput, validationErrorResponse, EvenementSchema } from '../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../core/lib/prisma';
+import { requirePermission } from '../../../../core/security/permission.guard';
 
-export async function GET(req: Request) {
+export const GET = requirePermission('events.read', async (req: Request) => {
   try {
     const url = new URL(req.url);
     const searchParams = url.searchParams;
@@ -38,9 +39,9 @@ export async function GET(req: Request) {
     console.error('GET /evenements error:', error);
     return NextResponse.json({ success: false, message: "Erreur base de données" }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
+export const POST = requirePermission('events.create', async (req: Request) => {
   try {
     const data = await req.json();
     const validation = validateInput(EvenementSchema, data);
@@ -66,4 +67,5 @@ export async function POST(req: Request) {
     console.error('POST /evenements error:', error);
     return NextResponse.json({ success: false, message: "Erreur lors de la création" }, { status: 500 });
   }
-}
+});
+

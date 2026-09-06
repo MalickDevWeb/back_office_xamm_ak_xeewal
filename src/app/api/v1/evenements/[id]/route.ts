@@ -2,8 +2,9 @@ export const runtime = 'nodejs';
 import { validateInput, validationErrorResponse, EvenementSchema } from '../../../../../core/lib/validation';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../../core/lib/prisma';
+import { requirePermission } from '../../../../../core/security/permission.guard';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export const PUT = requirePermission('events.update', async (req: Request, { params }: { params: { id: string } }) => {
   try {
     const data = await req.json();
     const validation = validateInput(EvenementSchema, data);
@@ -29,9 +30,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la mise à jour" }, { status: 500 });
   }
-}
+});
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export const DELETE = requirePermission('events.delete', async (req: Request, { params }: { params: { id: string } }) => {
   try {
     await prisma.evenement.delete({
       where: { id: params.id }
@@ -40,4 +41,5 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   } catch (error) {
     return NextResponse.json({ success: false, message: "Erreur lors de la suppression" }, { status: 500 });
   }
-}
+});
+
