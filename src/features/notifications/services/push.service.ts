@@ -2,22 +2,41 @@ import webPush from 'web-push';
 import { prisma } from '@/core/lib/prisma';
 import { IPushProvider } from '@/core/interfaces/notification-providers.interface';
 
-// Configuration VAPID. Ces clés devraient venir de l'environnement
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BM2x_...';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '...';
-
-webPush.setVapidDetails(
-  'mailto:contact@jamm-ak-xeewal.sn',
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
-
 export class PushService implements IPushProvider {
+  private isConfigured = false;
+
+  private configure() {
+    if (this.isConfigured) return;
+
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+    if (publicKey && privateKey && publicKey !== 'BM2x_...') {
+      try {
+        webPush.setVapidDetails(
+          'mailto:contact@jamm-ak-xeewal.sn',
+          publicKey,
+          privateKey
+        );
+        this.isConfigured = true;
+      } catch (error) {
+        console.error('[PushService] VAPID configuration error:', error);
+      }
+    }
+  }
+
   /**
    * Envoie une notification PUSH à un membre
    * Retourne true si au moins une souscription a réussi, false sinon (ou si aucune souscription)
    */
   async sendPushToMember(memberId: string, payload: any): Promise<boolean> {
+    this.configure();
+
+    if (!this.isConfigured) {
+      console.warn('[PushService] Web push non configuré, impossible d\'envoyer.');
+      return false;
+    }
+
     const subscriptions = await prisma.pushSubscription.findMany({
       where: { adherentId: memberId } // Le champ s'appelle adherentId ou memberId ? Je vérifierai adherentId.
     });
