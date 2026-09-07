@@ -82,6 +82,10 @@ const newModules = [
 ];
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn("⚠️ Le seeder est désactivé en production pour éviter la perte de données.");
+    process.exit(0);
+  }
   console.log('Starting seed...');
   for (const modDef of newModules) {
     let mod = await prisma.module.findFirst({ where: { name: modDef.name } });

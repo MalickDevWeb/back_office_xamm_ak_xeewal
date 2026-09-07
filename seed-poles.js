@@ -2,6 +2,10 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn("⚠️ Le seeder est désactivé en production pour éviter la perte de données.");
+    process.exit(0);
+  }
   const poles = [
     {
       titre: 'Développement Humain & Inclusion Sociale',

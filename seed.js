@@ -3,6 +3,10 @@ const bcrypt = require('bcrypt');
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn("⚠️ Le seeder est désactivé en production pour éviter la perte de données.");
+    process.exit(0);
+  }
   // Admin User
   const password = await bcrypt.hash('admin123', 10);
   await prisma.adminUser.upsert({

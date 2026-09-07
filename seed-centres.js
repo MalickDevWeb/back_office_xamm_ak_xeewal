@@ -24,6 +24,10 @@ const centres = [
 ];
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn("⚠️ Le seeder est désactivé en production pour éviter la perte de données.");
+    process.exit(0);
+  }
   for (const centre of centres) {
     await prisma.centreVote.upsert({
       where: { nom: centre.nom },
